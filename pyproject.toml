@@ -8,10 +8,14 @@ license = "GPL-3.0-or-later"
 repository = "https://github.com/douglasrfix/diyims"
 packages = [{include = "diyims", from = "src"}]
 
+[tool.poetry.scripts]
+diyims = "diyims.diyims:run"
+
 [tool.poetry.dependencies]
 python = "^3.8"
 requests = "^2.32.3"
 aiosql = "^11.1"
+typer = "^0.12.4"
 
 [build-system]
 requires = ["poetry-core"]
