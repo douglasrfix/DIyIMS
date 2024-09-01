@@ -1,6 +1,6 @@
 #TODO: 0.0.0a0 Setup testing
-#TODO: 0.0.0a0 Set up tox
-#TODO: 0.0.0a0 setup pre-commit hooks
-#TODO: > 0.0.0a0 test 3.8 and 3.9 for import lib behavior
+#TODO: 0.0.0a0 Set up tox for testing
+#TODO: 0.0.0a0 test 3.8 and 3.9 for import lib behavior
 #TODO: 0.0.0a0 Check sdist/wheel package behavior from poetry when packaging static data.
 #TODO: 0.0.0a0 Verify installation behavior on a different machine.
+#TODO: 0.0.0a0 Verify installation behavior on a different platform.

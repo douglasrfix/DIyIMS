@@ -1,5 +1,5 @@
-# TODO: fix references to cartest .car file
-# TODO: set hash only to false and pin to true
+# FIXME: fix references to cartest .car file
+# FIXME: set hash only to false and pin to true
 
 import json
 import sqlite3
