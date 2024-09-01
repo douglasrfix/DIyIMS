@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a1"
+version = "0.0.0a0"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -9,13 +9,18 @@ repository = "https://github.com/douglasrfix/diyims"
 packages = [{include = "diyims", from = "src"}]
 
 [tool.poetry.scripts]
-diyims = "diyims.diyims:run"
+diyims = "diyims.diyims:app"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 requests = "^2.32.3"
 aiosql = "^11.1"
 typer = "^0.12.4"
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.8.0"
+
 
 [build-system]
 requires = ["poetry-core"]

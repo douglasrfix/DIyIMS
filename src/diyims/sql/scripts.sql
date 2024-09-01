@@ -1,50 +1,46 @@
 
-
--- name: insert_header!
-insert into Header (ObjectIPFSPath, ObjectSubType, UserHeaderIPFSPath, PeerHeaderIPFSPath, PublishedUTCDTS, PriorIPFSPath, Version)
-values (:ObjectIPFSPath, :ObjectSubType, :UserHeaderIPFSPath, :PeerHeaderIPFSPath, :PublishedUTCDTS, :PriorIPFSPath, :Version)
-
--- name: insert_peer!
-insert into Peer (PeerID, IPNSPath, VoluntaryBootStrap, FlagCID, PublishedUTCDTS, PriorIPFSPath, Version)
-values (:PeerID, :IPNSPath, :VoluntaryBootStrap, :FlagCID, :PublishedUTCDTS, :PriorIPFSPath, :Version)
-
--- name: insert_user!
-insert into User (FullName, Address, Website, Email, UserName, PublishedUTCDTS, PriorIPFSPath, Version)
-values (:FullName, :Address, :Website, :Email, :UserName, :PublishedUTCDTS, :PriorIPFSPath, :Version)
-
--- name: insert_connected!
-insert into connected (Addr, Peer)
-values (:Addr, :Peer)
-
--- name: insert_WantList!
-insert into WantList (Peer, CID)
-values (:Peer, :CID)
-
--- name: pragma#
-PRAGMA journal_mode = OFF;
-
--- name: clear_connected#
-delete from connected;
-
--- name: clear_wantlist#
-delete from WantList;
-
--- name: select_all
-SELECT
-   Addr, 
-   Peer,
-   CID
-FROM
-   connected c
-INNER JOIN WantList w using(Peer) inner join BootStrap b using(Peer) inner join Peer p where w.CID = p.FlagCID;
-
-
 -- name: create_schema#
-CREATE TABLE "Network_Peers" (
-	"PeerID"	TEXT,
-	"IPNSPath"	TEXT,
-	"AnnouncementIPFSPath"	TEXT,
-   "SelfIndicator"  TEXT,
-   "TableInsertDTS" TEXT,
-   "PriorTableEntryIPFSPath" TEXT
+CREATE TABLE "header_table" (
+	"version" TEXT,
+	"object_CID"	TEXT,
+	"object_type"	TEXT,
+	"insert_DTS"	TEXT,
+	"prior_header_CID"	TEXT,
+	'header_CID' TEXT
 );
+
+CREATE TABLE "peer_table" (
+	"version" TEXT,
+	"peer_ID"	TEXT UNIQUE,
+	"IPNS_name"	TEXT
+);
+
+-- name: insert_peer_row!
+insert into peer_table (version, peer_ID, IPNS_name)
+values (:version, :peer_ID, :IPNS_name);
+
+-- name: insert_header_row!
+insert into header_table (version, object_CID, object_type, insert_DTS,
+	 prior_header_CID, header_CID)
+values (:version, :object_CID, :object_type, :insert_DTS,
+	 :prior_header_CID, :header_CID);
+
+-- name: select_last_header^
+SELECT
+ 	version,
+   	object_CID,
+   	object_type,
+   	insert_DTS,
+   	prior_header_CID,
+   	header_CID
+
+FROM
+   header_table
+
+ORDER BY
+
+	insert_DTS DESC
+;
+
+-- name: commit!
+commit;
