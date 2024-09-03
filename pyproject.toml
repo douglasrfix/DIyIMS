@@ -34,7 +34,28 @@ max-line-length = 80
 max-complexity = 18
 select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    minversion = 3.24
+    envlist = default
+    isolated_build = True
 
+    [testenv]
+    allowlist_externals = pytest
+    description = Invoke pytest to run automated tests
+    setenv =
+        TOXINIDIR = {toxinidir}
+    passenv =
+        HOME
+        SETUPTOOLS_*
+    extras =
+        testing
+    #commands =
+    #    pytest {posargs}
+    commands = pytest --cov --cov-append --cov-report=term-missing
+
+"""
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
