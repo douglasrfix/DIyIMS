@@ -17,6 +17,7 @@
 import typer
 from rich import print
 
+# from diyims.config import config
 from diyims.init_db_env import create, init, test
 
 app = typer.Typer(no_args_is_help=True, help="Awesome CLI user manager.")
@@ -45,6 +46,20 @@ def init_app():
 
     """
     init()
+
+
+'''
+@app.command()
+def config_app():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+
+    """
+    config()
+
+'''
 
 
 @app.command()

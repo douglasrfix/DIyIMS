@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a0"
+version = "0.0.0a2"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -23,6 +23,16 @@ pre-commit = "^3.8.0"
 tox = "^4.18.0"
 pytest = "^8.3.2"
 pytest-cov = "^5.0.0"
+flake8-pyproject = "^1.2.3"
+
+[tool.flake8]
+# B905 should be enabled when we drop support for 3.9
+ignore = ['E203', 'E266', 'E501', 'E701', 'E704', 'W503', 'B905', 'B907']
+# line length is intentionally set to 80 here because black uses Bugbear
+# See https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html#bugbear for more details
+max-line-length = 80
+max-complexity = 18
+select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 
 
 [build-system]

@@ -15,6 +15,8 @@ The string 'Null' is used to avoid language and utility behaviors. SQLLite, Pyth
 
 Where a name is used in more than one context such as db and python the lowercase underscore convention is used to avoid remembering the names.
 
+rpc-2.0
+
 # Application Structure
 
 1. Externally developed resources
