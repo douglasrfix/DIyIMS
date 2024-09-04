@@ -18,56 +18,15 @@ import typer
 from rich import print
 
 # from diyims.config import config
-from diyims.init_db_env import create, init, test
+from diyims import configuration_cli, database_cli, install_cli
 
 app = typer.Typer(no_args_is_help=True, help="Awesome CLI user manager.")
+app.add_typer(database_cli.app, name="database")
+app.add_typer(configuration_cli.app, name="config")
+app.add_typer(install_cli.app, name="install")
 
 
 @app.command()
 def help():
-    """This is to cath some of the looking form help attempts"""
-    print("Try --help or diyims ")
-
-
-@app.command()
-def create_db():
-    """Initializes the database to a known state. If a pre-existing
-    installation exists it will simply return with an error message
-    """
-    create()
-
-
-@app.command()
-def init_app():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-
-    """
-    init()
-
-
-'''
-@app.command()
-def config_app():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-
-    """
-    config()
-
-'''
-
-
-@app.command()
-def test_app():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-
-    """
-    test()
+    """This is to cath some of the looking for help attempts"""
+    print("Try diyims --help or just diyims")
