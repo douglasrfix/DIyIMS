@@ -1,4 +1,3 @@
-# TODO: 0.0.0a1 introduce sub command
 # TODO: > 0.0.0a0 can this interface support support batch, command line and
 #   invoking
 #   from a windows application like file explorer?

@@ -1,11 +1,11 @@
+import configparser
 import sys
 from pathlib import Path
 
-# import configparser
 from rich import print
 
 
-def install():
+def install_app():
     if sys.platform.startswith("freebsd"):
         print("FreeBSD found and not tested")
         return 1
@@ -29,15 +29,22 @@ def install():
     else:
         print("OS not identified and thus not supported")
 
-    # config = configparser.ConfigParser()
-
-    directory_path = Path.home().joinpath("AppData", "local", "diyims, diyims.ini")
+    directory_path = Path.home().joinpath(
+        "AppData",
+        "Local",
+        "diyims",
+    )
     if directory_path.exists():
         print("Previous installation found. Current installation not performed.")
         return 1
 
-    directory_path.mkdir(parents=True, exist_ok=True)
-    return 0
+    directory_path.mkdir(mode=755, parents=True, exist_ok=True)
+    file_path = Path().joinpath(directory_path, "diyims")
+    default_db_path = str(Path.home() / ".diyims")
 
-    # with open("diyims.ini", "w") as configfile:
-    #     config.write(configfile)
+    config = configparser.ConfigParser()
+    config["Paths"] = {}
+    config["Paths"]["db_path"] = default_db_path
+    with open(file_path, "w") as configfile:
+        config.write(configfile)
+    return 0
