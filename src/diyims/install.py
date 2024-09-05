@@ -39,7 +39,7 @@ def install_app():
         return 1
 
     directory_path.mkdir(mode=755, parents=True, exist_ok=True)
-    file_path = Path().joinpath(directory_path, "diyims")
+    file_path = Path().joinpath(directory_path, "diyims.ini")
     default_db_path = str(Path.home() / ".diyims")
 
     config = configparser.ConfigParser()

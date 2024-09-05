@@ -1,7 +1,7 @@
 import typer
 from rich import print
 
-from diyims.database import create
+from diyims.database import create, init
 from diyims.install import install_app
 
 app = typer.Typer(no_args_is_help=True, help="Installation activities.")
@@ -27,3 +27,14 @@ def create_db():
     installation exists it will simply return with an error message
     """
     create()
+
+
+@app.command()
+def init_db():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+
+    """
+    init()
