@@ -1,5 +1,8 @@
+from typing import Optional
+
 import typer
 from rich import print
+from typing_extensions import Annotated
 
 from diyims.database import create, init
 from diyims.install import install_app
@@ -14,11 +17,23 @@ def help():
 
 
 @app.command()
-def install():
-    """Installs the application files in preparation for initialization. If a pre-existing
+def install(
+    drive_letter: Annotated[
+        Optional[str],
+        typer.Option(
+            help="The drive letter to use if not the default eg 'C'.",
+            show_default=False,
+            rich_help_panel="Install Options",
+        ),
+    ] = "Default"
+):
+    """
+    The path that will be used to locate the database. This is in the form of the platform
+    the application is installed upon.
+
     installation exists or some other problem occurs, it will simply return with an error message.
     """
-    install_app()
+    install_app(drive_letter)
 
 
 @app.command()

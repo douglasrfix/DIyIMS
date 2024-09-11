@@ -1,50 +1,54 @@
 import configparser
-import sys
 from pathlib import Path
 
 from rich import print
 
+from diyims.error_classes import UnsupportedPlatformError
+from diyims.paths import get_path_dict
 
-def install_app():
-    if sys.platform.startswith("freebsd"):
-        print("FreeBSD found and not tested")
-        return 1
-    elif sys.platform.startswith("linux"):
-        print("Linux found and not tested")
-        return 1
-    elif sys.platform.startswith("aix"):
-        print("AIX found and not supported")
-        return 1
-    elif sys.platform.startswith("wasi"):
-        print("WASI found and not supported")
-        return 1
-    elif sys.platform.startswith("win32"):
-        print("Windows found and supported")
-    elif sys.platform.startswith("cygwin"):
-        print("CYGWIN found and not supported")
-        return 1
-    elif sys.platform.startswith("darwin"):
-        print("macOS found and not supported")
-        return 1
-    else:
-        print("OS not identified and thus not supported")
 
-    directory_path = Path.home().joinpath(
-        "AppData",
-        "Local",
-        "diyims",
-    )
-    if directory_path.exists():
+def install_app(drive_letter):
+    try:
+        path_dict = get_path_dict(drive_letter)
+
+    except UnsupportedPlatformError as error:
+        print(error.value, "is an unsupported platform")
+
+    ini_path = path_dict["ini_path"]
+    db_path = path_dict["db_path"]
+    log_path = path_dict["log_path"]
+    header_path = path_dict["header_path"]
+    peer_path = path_dict["peer_path"]
+    if ini_path.exists():
         print("Previous installation found. Current installation not performed.")
-        return 1
+        return 0
 
-    directory_path.mkdir(mode=755, parents=True, exist_ok=True)
-    file_path = Path().joinpath(directory_path, "diyims.ini")
-    default_db_path = str(Path.home() / ".diyims")
+    try:
+        db_path.mkdir(mode=755, parents=True, exist_ok=True)
+    except FileNotFoundError:
+        print(f"Drive letter {drive_letter} invalid.")
+        return
+
+    ini_path.mkdir(mode=755, parents=True, exist_ok=True)
+    log_path.mkdir(mode=755, parents=True, exist_ok=True)
+    header_path.mkdir(mode=755, parents=True, exist_ok=True)
+    peer_path.mkdir(mode=755, parents=True, exist_ok=True)
+
+    ini_file = Path(ini_path).joinpath("diyims.ini")
+    db_file = Path(db_path).joinpath("diyims.db")
+    header_file = Path(header_path).joinpath("header.json")
+    peer_file = Path(header_path).joinpath("peer_table.json")
 
     config = configparser.ConfigParser()
     config["Paths"] = {}
-    config["Paths"]["db_path"] = default_db_path
-    with open(file_path, "w") as configfile:
+    config["Drives"] = {}
+    config["Paths"]["ini_path"] = str(ini_file)
+    config["Paths"]["db_path"] = str(db_file)
+    config["Paths"]["log_path"] = str(log_path)
+    config["Drives"]["default_drive"] = str(path_dict["default_drive"])
+    config["Drives"]["drive_letter"] = str(path_dict["drive_letter"])
+    config["Paths"]["header_path"] = str(header_file)
+    config["Paths"]["peer_path"] = str(peer_file)
+    with open(ini_file, "w") as configfile:
         config.write(configfile)
     return 0

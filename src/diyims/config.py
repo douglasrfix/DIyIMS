@@ -1,7 +1,7 @@
 import configparser
 
 
-def config():
+def list_config():
     config = configparser.ConfigParser()
 
     try:

@@ -1,22 +1,26 @@
-import configparser
+# FIXME: fix references to cartest .car file
+# FIXME: set hash only to false and pin to true
 import json
 import sqlite3
 from datetime import datetime, timezone
 from importlib import resources
-from pathlib import Path
 from sqlite3 import Error
 
 import aiosql
 import requests
 from rich import print
 
+from diyims.paths import get_path_dict
+from diyims.urls import get_url_dict
+
 
 def create():
+    path_dict = get_path_dict()
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
     )
     queries = aiosql.from_str(sql_str, "sqlite3")
-    connect_path = get_connect_path()
+    connect_path = path_dict["db_path"]
     conn = sqlite3.connect(connect_path)
 
     try:
@@ -29,16 +33,13 @@ def create():
 
 
 def init():
-    url_dict = {}
-    url_dict["add"] = "http://127.0.0.1:5001/api/v0/add"
-    url_dict["id"] = "http://127.0.0.1:5001/api/v0/id"
-    url_dict["dag_import"] = "http://127.0.0.1:5001/api/v0/dag/import"
-
+    path_dict = get_path_dict()
+    url_dict = get_url_dict()
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
     )
     queries = aiosql.from_str(sql_str, "sqlite3")
-    connect_path = get_connect_path()
+    connect_path = path_dict["db_path"]
     conn = sqlite3.connect(connect_path)
 
     peer_table_dict = {}
@@ -78,7 +79,7 @@ def init():
     peer_table_dict["peer_id"] = json_dict["ID"]
     peer_table_dict["IPNS_name"] = IPNS_name
 
-    peer_path = Path.home().joinpath(".diyims", "peer_table.json")
+    peer_path = path_dict["peer_path"]
     add_params = {"only-hash": "true", "pin": "false"}
 
     with open(peer_path, "w") as write_file:
@@ -112,14 +113,13 @@ def init():
 
 
 def ipfs_header_create(DTS, object_CID, object_type):
-    url_dict = {}
-    url_dict["add"] = "http://127.0.0.1:5001/api/v0/add"
-    url_dict["name_publish"] = "http://127.0.0.1:5001/api/v0/name/publish"
+    path_dict = get_path_dict()
+    url_dict = get_url_dict()
 
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
     )
-    connect_path = get_connect_path()
+    connect_path = path_dict["db_path"]
     header_conn = sqlite3.connect(connect_path)
     header_conn.row_factory = sqlite3.Row
     queries = aiosql.from_str(sql_str, "sqlite3")
@@ -145,7 +145,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
 
         header_CID = "null"
 
-    header_json_path = Path.home().joinpath(".diyims", "header.json")
+    header_json_path = path_dict["header_path"]
     add_params = {"only-hash": "true", "pin": "false"}
 
     with open(header_json_path, "w") as write_file:
@@ -190,8 +190,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
 
 
 def import_car():
-    url_dict = {}
-    url_dict["dag_import"] = "http://127.0.0.1:5001/api/v0/dag/import"
+    url_dict = get_url_dict()
 
     dag_import_files = {
         "file": resources.open_binary("diyims.resources", "cartest.car")
@@ -210,14 +209,3 @@ def import_car():
         imported_CID = json_dict["Root"]["Cid"]["/"]
 
     return imported_CID
-
-
-def get_connect_path():
-    ini_path = Path.home().joinpath("AppData", "Local", "diyims", "diyims.ini")
-    config = configparser.ConfigParser()
-    config.read_file(open(ini_path))
-    ini_db_path = config["Paths"]["db_path"]
-    db_path = Path(ini_db_path)
-    db_path.mkdir(mode=755, parents=True, exist_ok=True)
-    connect_path = Path.joinpath(db_path, "diyims.db")
-    return connect_path

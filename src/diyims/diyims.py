@@ -1,8 +1,4 @@
-# TODO: > 0.0.0a0 can this interface support support batch, command line and
-#   invoking
-#   from a windows application like file explorer?
-# TODO: > 0.0.0a0 powershell variable $Error to see stderr output on the
-#   console.
+# TODO: enhance command help
 
 """  This is the command line interface driver.
 
@@ -16,12 +12,13 @@
 import typer
 from rich import print
 
-# from diyims.config import config
-from diyims import configuration_cli, database_cli, install_cli
+from diyims import install_cli
 
-app = typer.Typer(no_args_is_help=True, help="Awesome CLI user manager.")
-app.add_typer(database_cli.app, name="database")
-app.add_typer(configuration_cli.app, name="config")
+app = typer.Typer(
+    no_args_is_help=True, help="Base command for the DIY Independent Media Services."
+)
+# app.add_typer(database_cli.app, name="database")
+# app.add_typer(configuration_cli.app, name="config")
 app.add_typer(install_cli.app, name="install")
 
 

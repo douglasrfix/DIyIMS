@@ -1,7 +1,7 @@
 import typer
 from rich import print
 
-from diyims.config import config
+from diyims.config import list_config
 
 app = typer.Typer(no_args_is_help=True, help="Configuration activities.")
 
@@ -13,8 +13,8 @@ def help():
 
 
 @app.command()
-def list_cfg():
+def list():
     """Initializes the database to a known state. If a pre-existing
     installation exists it will simply return with an error message
     """
-    config()
+    list_config()
