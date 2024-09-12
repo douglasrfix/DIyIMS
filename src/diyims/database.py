@@ -12,10 +12,16 @@ from rich import print
 
 from diyims.paths import get_path_dict
 from diyims.urls import get_url_dict
+from diyims.error_classes import UnTestedPlatformError
 
 
 def create():
-    path_dict = get_path_dict()
+    try:
+        path_dict = get_path_dict()
+
+    except UnTestedPlatformError:
+        pass
+
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
     )
@@ -33,7 +39,12 @@ def create():
 
 
 def init():
-    path_dict = get_path_dict()
+    try:
+        path_dict = get_path_dict()
+
+    except UnTestedPlatformError:
+        pass
+
     url_dict = get_url_dict()
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
@@ -113,7 +124,12 @@ def init():
 
 
 def ipfs_header_create(DTS, object_CID, object_type):
-    path_dict = get_path_dict()
+    try:
+        path_dict = get_path_dict()
+
+    except UnTestedPlatformError:
+        pass
+
     url_dict = get_url_dict()
 
     sql_str = resources.read_text(
