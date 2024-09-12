@@ -3,16 +3,25 @@ from pathlib import Path
 
 from rich import print
 
-from diyims.error_classes import UnsupportedPlatformError
+from diyims.error_classes import UnSupportedPlatformError, UnTestedPlatformError
 from diyims.paths import get_path_dict
 
 
-def install_app(drive_letter):
+def install_app(drive_letter, force_python):
     try:
-        path_dict = get_path_dict(drive_letter)
+        path_dict = get_path_dict(drive_letter, force_python)
 
-    except UnsupportedPlatformError as error:
+    except UnSupportedPlatformError as error:
         print(error.value, "is an unsupported platform")
+        return
+
+    except UnTestedPlatformError as error:
+        print(
+            error.system,
+            error.release,
+            "is an untested platform if Python was installed via the Microsoft Store application.",
+        )
+        return
 
     ini_path = path_dict["ini_path"]
     db_path = path_dict["db_path"]

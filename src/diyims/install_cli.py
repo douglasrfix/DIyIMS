@@ -25,15 +25,24 @@ def install(
             show_default=False,
             rich_help_panel="Install Options",
         ),
-    ] = "Default"
+    ] = "Default",
+    force_python: Annotated[
+        bool, typer.Option(help="Force installation", rich_help_panel="Install Options")
+    ] = False,
 ):
     """
-    The path that will be used to locate the database. This is in the form of the platform
-    the application is installed upon.
+    The installation process is intended to satisfy the needs of most users. That being said,
+        there may be circumstances which result in error messages. The most common error may well be
+        the error for an untested platform referring to Windows 10 or 11. This is because Microsoft
+        introduced the
+        Microsoft Store which is one option to install Python. Unfortunately, the behavior
+        of how the system handles directories is different than if Python was installed from the
+        Python.org but there is no method to detect source of the Python installation. An option
+        --force-python has been provided to force the installer to accept the Python installation
+        no matter the source.
 
-    installation exists or some other problem occurs, it will simply return with an error message.
     """
-    install_app(drive_letter)
+    install_app(drive_letter, force_python)
 
 
 @app.command()

@@ -1,12 +1,17 @@
 import configparser
+import platform
 import sys
 from pathlib import Path
 
-from diyims.error_classes import UnsupportedPlatformError
+from diyims.error_classes import UnSupportedPlatformError, UnTestedPlatformError
 
 
-def get_path_dict(drive_letter="Default"):
-    if sys.platform.startswith("win32"):
+def get_path_dict(drive_letter="Default", force_python=False):
+    if sys.platform.startswith("win"):
+        if platform.release() >= "10":
+            if not force_python:
+                raise (UnTestedPlatformError(platform.system(), platform.release()))
+
         home_path = Path.home()
         home_path_parts = home_path.parts
         default_drive = Path(*home_path_parts[0:1])
@@ -30,7 +35,7 @@ def get_path_dict(drive_letter="Default"):
             "diyims",
         )
     else:
-        raise (UnsupportedPlatformError(sys.platform))
+        raise (UnSupportedPlatformError(sys.platform))
 
     config_path = Path().joinpath(ini_path, "config", "diyims.ini")
     config = configparser.ConfigParser()
