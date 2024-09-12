@@ -19,8 +19,8 @@ def create():
     try:
         path_dict = get_path_dict()
 
-    except UnTestedPlatformError:
-        pass
+    except UnTestedPlatformError as error:
+        path_dict = error.dict
 
     sql_str = resources.read_text(
         "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
@@ -42,8 +42,8 @@ def init():
     try:
         path_dict = get_path_dict()
 
-    except UnTestedPlatformError:
-        pass
+    except UnTestedPlatformError as error:
+        path_dict = error.dict
 
     url_dict = get_url_dict()
     sql_str = resources.read_text(
@@ -127,8 +127,8 @@ def ipfs_header_create(DTS, object_CID, object_type):
     try:
         path_dict = get_path_dict()
 
-    except UnTestedPlatformError:
-        pass
+    except UnTestedPlatformError as error:
+        path_dict = error.dict
 
     url_dict = get_url_dict()
 

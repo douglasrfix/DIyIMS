@@ -8,10 +8,6 @@ from diyims.error_classes import UnSupportedPlatformError, UnTestedPlatformError
 
 def get_path_dict(drive_letter="Default", force_python=False):
     if sys.platform.startswith("win"):
-        if platform.release() >= "10":
-            if not force_python:
-                raise (UnTestedPlatformError(platform.system(), platform.release()))
-
         home_path = Path.home()
         home_path_parts = home_path.parts
         default_drive = Path(*home_path_parts[0:1])
@@ -27,13 +23,13 @@ def get_path_dict(drive_letter="Default", force_python=False):
             "Local",
             "diyims",
         )
-        # TODO: Test on a platform with two different drive letters
         data_path = Path(home_drive).joinpath(
             partial_home_path,
             "AppData",
             "Local",
             "diyims",
         )
+
     else:
         raise (UnSupportedPlatformError(sys.platform))
 
@@ -62,5 +58,14 @@ def get_path_dict(drive_letter="Default", force_python=False):
         path_dict["log_path"] = Path(config["Paths"]["log_path"])
         path_dict["header_path"] = Path(config["Paths"]["header_path"])
         path_dict["peer_path"] = Path(config["Paths"]["peer_path"])
+
+    if sys.platform.startswith("win"):
+        if platform.release() >= "10":
+            if not force_python:
+                raise (
+                    UnTestedPlatformError(
+                        platform.system(), platform.release(), path_dict
+                    )
+                )
 
     return path_dict

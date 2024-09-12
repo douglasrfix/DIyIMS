@@ -22,11 +22,13 @@ class PreExistingInstallationError(Exception):
 
 class UnTestedPlatformError(Exception):
     # Constructor or Initializer
-    def __init__(self, system, release):
+    def __init__(self, system, release, dict):
         self.system = system
         self.release = release
+        self.dict = dict
         super().__init__(self.system)
         super().__init__(self.release)
+        super().__init__(self.dict)
 
     # __str__ is to print() the value
 
