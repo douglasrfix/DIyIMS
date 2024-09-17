@@ -1,4 +1,5 @@
 import configparser
+import os
 import platform
 import sys
 from pathlib import Path
@@ -7,8 +8,19 @@ from diyims.error_classes import UnSupportedPlatformError, UnTestedPlatformError
 
 
 def get_path_dict(drive_letter="Default", force_python=False):
-    if sys.platform.startswith("win"):
-        home_path = Path.home()
+    try:
+        os_platform = os.environ["OVERRIDE_PLATFORM"]
+
+    except KeyError:
+        os_platform = sys.platform
+
+    if os_platform.startswith("win"):
+        try:
+            home_path = Path(os.environ["OVERRIDE_HOME"])
+
+        except KeyError:
+            home_path = Path.home()
+
         home_path_parts = home_path.parts
         default_drive = Path(*home_path_parts[0:1])
         if drive_letter == "Default":
@@ -31,7 +43,7 @@ def get_path_dict(drive_letter="Default", force_python=False):
         )
 
     else:
-        raise (UnSupportedPlatformError(sys.platform))
+        raise (UnSupportedPlatformError(os_platform))
 
     config_path = Path().joinpath(ini_path, "config", "diyims.ini")
     config = configparser.ConfigParser()
@@ -59,9 +71,9 @@ def get_path_dict(drive_letter="Default", force_python=False):
         path_dict["header_path"] = Path(config["Paths"]["header_path"])
         path_dict["peer_path"] = Path(config["Paths"]["peer_path"])
 
-    if sys.platform.startswith("win"):
+    if os_platform.startswith("win"):
         if platform.release() >= "10":
-            if not force_python:
+            if force_python is False:
                 raise (
                     UnTestedPlatformError(
                         platform.system(), platform.release(), path_dict

@@ -4,5 +4,6 @@ def get_url_dict():
     url_dict["id"] = "http://127.0.0.1:5001/api/v0/id"
     url_dict["dag_import"] = "http://127.0.0.1:5001/api/v0/dag/import"
     url_dict["name_publish"] = "http://127.0.0.1:5001/api/v0/name/publish"
+    url_dict["find_providers"] = "http://127.0.0.1:5001/api/v0/routing/findprovs"
 
     return url_dict

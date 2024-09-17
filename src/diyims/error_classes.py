@@ -36,11 +36,34 @@ class UnTestedPlatformError(Exception):
         return repr(self.system)
 
 
-"""
-try:
-    raise (UnsupportedPlatformError('darwin'))
+class InvalidDriveLetterError(Exception):
+    # Constructor or Initializer
+    def __init__(self, value):
+        self.value = value
+        super().__init__(self.value)
 
-# Value of Exception is stored in error
-except UnsupportedPlatformError as error:
-    print(error.value, "is not a supported platform")
-"""
+    # __str__ is to print() the value
+    def __str__(self):
+        return repr(self.value)
+
+
+class CreateSchemaError(Exception):
+    # Constructor or Initializer
+    def __init__(self, value):
+        self.value = value
+        super().__init__(self.value)
+
+    # __str__ is to print() the value
+    def __str__(self):
+        return repr(self.value)
+
+
+class UnSupportedIPFSVersionError(Exception):
+    # Constructor or Initializer
+    def __init__(self, value):
+        self.value = value
+        super().__init__(self.value)
+
+    # __str__ is to print() the value
+    def __str__(self):
+        return repr(self.value)

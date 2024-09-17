@@ -4,16 +4,18 @@ import typer
 from rich import print
 from typing_extensions import Annotated
 
-from diyims.database import create, init
+from diyims.database_install import create, init
+from diyims.error_classes import (
+    CreateSchemaError,
+    InvalidDriveLetterError,
+    PreExistingInstallationError,
+    UnSupportedIPFSVersionError,
+    UnSupportedPlatformError,
+    UnTestedPlatformError,
+)
 from diyims.install import install_app
 
 app = typer.Typer(no_args_is_help=True, help="Installation activities.")
-
-
-@app.command()
-def help():
-    """This is to cath some of the looking form help attempts"""
-    print("Try diyims install --help or diyims install ")
 
 
 @app.command()
@@ -42,23 +44,60 @@ def install(
         no matter the source.
 
     """
-    install_app(drive_letter, force_python)
+    try:
+        install_app(drive_letter, force_python)
+
+    except UnTestedPlatformError as error:
+        print(
+            error.system,
+            error.release,
+            "is an untested platform if Python was installed via the Microsoft Store application.",
+        )
+
+        raise typer.Exit(code=1)
+
+    except PreExistingInstallationError:
+        print("A previous installation was detected. Current installation not changed.")
+        raise typer.Exit(code=2)
+
+    except InvalidDriveLetterError as error:
+        print(f"Provide drive letter {error.value} is invalid.")
+        raise typer.Exit(code=2)
+
+    except UnSupportedPlatformError as error:
+        print(error.value, "is an unsupported platform.")
+        raise typer.Exit(code=2)
 
 
 @app.command()
-def create_db():
+def create_schema():
     """Initializes the database to a known state. If a pre-existing
     installation exists it will simply return with an error message
     """
-    create()
+    try:
+        create()
+    except CreateSchemaError as error:
+        print(
+            f"There was a schema creation problem. If {error.value} is about a table already existing then this is simply a symptom of an existing installation. No changes were made."
+        )
+        raise typer.Exit(code=1)
 
 
 @app.command()
-def init_db():
+def init_database():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
 
     """
-    init()
+    try:
+        init()
+
+    except PreExistingInstallationError:
+        print("Previous installation found. Current installation not changed.")
+        raise typer.Exit(code=1)
+
+    except UnSupportedIPFSVersionError as error:
+        print(f"{error.value} is not supported")
+        raise typer.Exit(code=2)
