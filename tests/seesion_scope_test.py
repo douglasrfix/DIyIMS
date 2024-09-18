@@ -5,11 +5,11 @@ import pytest
 from typer.testing import CliRunner
 
 from diyims.diyims import app
+from diyims.experimental import test
 
 runner = CliRunner()
 
 
-# TODO: method to save and restore a preset environment
 @pytest.fixture(scope="session")
 def environ(tmp_path_factory):
     p = str(tmp_path_factory.mktemp("session"))
@@ -19,6 +19,11 @@ def environ(tmp_path_factory):
 @pytest.fixture(scope="function")
 def environ_v(monkeypatch):
     monkeypatch.setenv("OVERRIDE_IPFS_VERSION", "0")
+
+
+@pytest.fixture(scope="function")
+def purge_ipfs():
+    test()
 
 
 def test_cli_l2_c1_b(environ):
@@ -55,7 +60,6 @@ def test_cli_l2_c1_e():
     assert result.exit_code == 1
 
 
-# TODO: how to clean up ipfs and reset?
 def test_cli_l2_c1_f(environ_v):
     """testing  initializing database with no previous initialization and unsupported ipfs version"""
     command_string = "install-utils init-database"
@@ -72,7 +76,7 @@ def test_cli_l2_c1_f2():
     assert result.exit_code == 0
 
 
-def test_cli_l2_c1_g():
+def test_cli_l2_c1_g(purge_ipfs):
     """testing  initializing database with previous initialization"""
     command_string = "install-utils init-database"
     result = runner.invoke(app, shlex.split(command_string))

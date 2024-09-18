@@ -1,5 +1,3 @@
-# FIXME: fix references to cartest .car file
-# FIXME: set hash only to false and pin to true
 import json
 import os
 import sqlite3
@@ -140,7 +138,7 @@ def init():
     peer_table_dict["IPNS_name"] = IPNS_name
 
     peer_path = path_dict["peer_path"]
-    add_params = {"only-hash": "true", "pin": "false"}
+    add_params = {"only-hash": "false", "pin": "true"}
 
     with open(peer_path, "w") as write_file:
         json.dump(peer_table_dict, write_file, indent=4)
@@ -182,9 +180,7 @@ def init():
 def import_car():
     url_dict = get_url_dict()
 
-    dag_import_files = {
-        "file": resources.open_binary("diyims.resources", "cartest.car")
-    }
+    dag_import_files = {"file": resources.open_binary("diyims.resources", "cartxt.car")}
     dag_import_params = {
         "pin-roots": "true",
         "silent": "false",

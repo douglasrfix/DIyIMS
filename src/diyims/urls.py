@@ -5,5 +5,8 @@ def get_url_dict():
     url_dict["dag_import"] = "http://127.0.0.1:5001/api/v0/dag/import"
     url_dict["name_publish"] = "http://127.0.0.1:5001/api/v0/name/publish"
     url_dict["find_providers"] = "http://127.0.0.1:5001/api/v0/routing/findprovs"
+    url_dict["pin_list"] = "http://127.0.0.1:5001/api/v0/pin/ls"
+    url_dict["pin_remove"] = "http://127.0.0.1:5001/api/v0/pin/rm"
+    url_dict["run_gc"] = "http://127.0.0.1:5001/api/v0/repo/gc"
 
     return url_dict

@@ -12,7 +12,7 @@ packages = [{include = "diyims", from = "src"}]
 diyims = "diyims.diyims:app"
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.10"
+python = ">=3.8, <3.11"
 requests = ">=2.32.0"
 aiosql = ">=9.0"
 typer = ">=0.12.4"
@@ -38,7 +38,7 @@ select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 legacy_tox_ini = """
     [tox]
     minversion = 3.24
-    envlist = default
+    envlist = py38, py39, py310
     isolated_build = True
     skip_missing_interpreters = True
 
