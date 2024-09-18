@@ -21,3 +21,4 @@
 # [x]: set hash only to false and pin to true
 # [ ]: Data based ipfs clean up instead of brute for approach currently in use.
 # [ ]: Where does tox look for python interpreters for multi python testing?
+# [x]: explore git enhancement

@@ -11,11 +11,12 @@ from rich import print
 
 from diyims.error_classes import (
     CreateSchemaError,
-    UnSupportedIPFSVersionError,
     PreExistingInstallationError,
+    UnSupportedIPFSVersionError,
     UnTestedPlatformError,
 )
 from diyims.header_ops import ipfs_header_create
+from diyims.import_lib import get_sql_str
 from diyims.paths import get_path_dict
 from diyims.urls import get_url_dict
 
@@ -27,9 +28,7 @@ def create():
     except UnTestedPlatformError as error:
         path_dict = error.dict
 
-    sql_str = resources.read_text(
-        "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
-    )
+    sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
     connect_path = path_dict["db_path"]
     conn = sqlite3.connect(connect_path)
@@ -55,9 +54,7 @@ def init():
     network_table_dict["network_name"] = "null"
     url_dict = get_url_dict()
 
-    sql_str = resources.read_text(
-        "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
-    )
+    sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
     connect_path = path_dict["db_path"]
     conn = sqlite3.connect(connect_path)

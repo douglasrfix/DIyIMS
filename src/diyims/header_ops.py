@@ -1,11 +1,11 @@
 import json
 import sqlite3
-from importlib import resources
 
 import aiosql
 import requests
 
 from diyims.error_classes import UnTestedPlatformError
+from diyims.import_lib import get_sql_str
 from diyims.paths import get_path_dict
 from diyims.urls import get_url_dict
 
@@ -19,9 +19,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
 
     url_dict = get_url_dict()
 
-    sql_str = resources.read_text(
-        "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
-    )
+    sql_str = get_sql_str()
     connect_path = path_dict["db_path"]
     header_conn = sqlite3.connect(connect_path)
     header_conn.row_factory = sqlite3.Row

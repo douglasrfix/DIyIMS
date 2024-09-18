@@ -38,7 +38,7 @@ select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 legacy_tox_ini = """
     [tox]
     minversion = 3.24
-    envlist = py38, py39, py310
+    envlist = py38, py39
     isolated_build = True
     skip_missing_interpreters = True
 
