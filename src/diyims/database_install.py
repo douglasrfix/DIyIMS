@@ -2,7 +2,6 @@ import json
 import os
 import sqlite3
 from datetime import datetime, timezone
-from importlib import resources
 from sqlite3 import Error
 
 import aiosql
@@ -16,7 +15,7 @@ from diyims.error_classes import (
     UnTestedPlatformError,
 )
 from diyims.header_ops import ipfs_header_create
-from diyims.import_lib import get_sql_str
+from diyims.import_lib import get_car_path, get_sql_str
 from diyims.paths import get_path_dict
 from diyims.urls import get_url_dict
 
@@ -177,7 +176,8 @@ def init():
 def import_car():
     url_dict = get_url_dict()
 
-    dag_import_files = {"file": resources.open_binary("diyims.resources", "cartxt.car")}
+    car_path = get_car_path()
+    dag_import_files = {"file": car_path}
     dag_import_params = {
         "pin-roots": "true",
         "silent": "false",

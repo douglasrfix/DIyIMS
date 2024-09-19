@@ -1,18 +1,14 @@
 import configparser
 import os
 import platform
-import sys
 from pathlib import Path
 
-from diyims.error_classes import UnSupportedPlatformError, UnTestedPlatformError
+from diyims.error_classes import UnTestedPlatformError
+from diyims.os_platform import get_os_platform
 
 
 def get_path_dict(drive_letter="Default", force_python=False):
-    try:
-        os_platform = os.environ["OVERRIDE_PLATFORM"]
-
-    except KeyError:
-        os_platform = sys.platform
+    os_platform = get_os_platform()
 
     if os_platform.startswith("win"):
         try:
@@ -41,9 +37,6 @@ def get_path_dict(drive_letter="Default", force_python=False):
             "Local",
             "diyims",
         )
-
-    else:
-        raise (UnSupportedPlatformError(os_platform))
 
     config_path = Path().joinpath(ini_path, "config", "diyims.ini")
     config = configparser.ConfigParser()

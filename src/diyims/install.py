@@ -20,6 +20,7 @@ def install_app(drive_letter, force_python):
     log_path = path_dict["log_path"]
     header_path = path_dict["header_path"]
     peer_path = path_dict["peer_path"]
+
     if ini_path.exists():
         raise (PreExistingInstallationError(""))
 

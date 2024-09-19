@@ -59,6 +59,7 @@ def test_cli_l2_c1_a():
 
 
 # @pytest.mark.skip(reason="menus")
+@pytest.mark.smoke
 def test_cli_l2_c1_ab(environ_p):
     """testing  install with no option windows 11
     this should also be okay for windows 10

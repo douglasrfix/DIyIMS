@@ -13,12 +13,14 @@
 # [x]: todo checkboxes, colors in list
 # [ ]: Add backup and recovery of test environment for testing. save and restore
 # [x]: create 3.8.1 dev environment for flake8 support
-# [ ]: 0.0.0a0 test 3.8 and 3.9 for import lib behavior
+# [x]: 0.0.0a0 test 3.8 and 3.9 for import lib behavior
 # [ ]: 0.0.0a0 Verify installation behavior on a different platform (Linux).
 # [x]: run full test suite against v22/3.8.1
-# [ ]: explore single function testing
+# [x]: explore single function testing
 # [x]: fix references to cartest .car file
 # [x]: set hash only to false and pin to true
 # [ ]: Data based ipfs clean up instead of brute for approach currently in use.
-# [ ]: Where does tox look for python interpreters for multi python testing?
+# [x]: Where does tox look for python interpreters for multi python testing?
 # [x]: explore git enhancement
+# [x]: refactor unsupported platform to enhance self documentation
+# [x]: enhanced tox config to ease future python version testing

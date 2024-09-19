@@ -38,11 +38,12 @@ select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 legacy_tox_ini = """
     [tox]
     minversion = 3.24
-    envlist = py38, py39
+    envlist = dev-381, dev-39, dev-310
     isolated_build = True
     skip_missing_interpreters = True
 
     [testenv]
+    env_list = dev-381, dev-390, dev-310
     allowlist_externals = pytest
     description = Invoke pytest to run automated tests
     setenv =
@@ -54,7 +55,18 @@ legacy_tox_ini = """
         testing
     #commands =
     #    pytest {posargs}
-    commands = pytest --basetemp=C:\\Users\\dougl\\diyims\\tmp --capture=tee-sys --cov --cov-append --cov-report=term-missing
+    commands = pytest -v \
+     --capture=tee-sys --cov --cov-append --cov-report=term-missing \
+     --basetemp=C:\\Users\\dougl\\diyims\\tmp
+
+[testenv:dev-381]
+    base_python = C:\\Users\\dougl\\.pyenv\\pyenv-win\\versions\\3.8.1\\python.exe
+
+[testenv:dev-39]
+    base_python = C:\\Users\\dougl\\.pyenv\\pyenv-win\\versions\\3.9.0\\python.exe
+
+[testenv:dev-310]
+    base_python = C:\\Users\\dougl\\.pyenv\\pyenv-win\\versions\\3.10.0\\python.exe
 
 """
 [build-system]
