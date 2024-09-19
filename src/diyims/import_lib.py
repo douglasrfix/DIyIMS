@@ -17,7 +17,7 @@ def get_sql_str():
 
 def get_car_path():
     if sys.version_info[1] == 8:
-        car_path = resources.open_binary("diyims.resources", "cartxt.car")
+        car_path = resources.open_binary("diyims.resources", "cartext.car")
 
     else:
         car_path = get_car_path9()
