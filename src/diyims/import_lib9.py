@@ -9,6 +9,6 @@ def get_sql_str9():
 def get_car_path9():
     from importlib import files
 
-    car_path = files("diyims.resources").joinpath("cartxt.txt").open("rb")
+    car_path = files("diyims.resources").joinpath("cartext.txt").open("rb")
 
     return car_path
