@@ -1,7 +1,7 @@
 import sys
 from importlib import resources
 
-from diyims.import_lib9 import get_sql_str9, get_car_path9
+from diyims.import_lib9 import get_car_path9, get_sql_str9
 
 
 def get_sql_str():
