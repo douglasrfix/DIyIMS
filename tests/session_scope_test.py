@@ -26,6 +26,7 @@ def purge_ipfs():
     test()
 
 
+@pytest.mark.smoke
 def test_cli_l2_c1_b(environ):
     """testing  install with --force option windows 11
     this should also be okay for windows 10"""
@@ -44,6 +45,7 @@ def test_cli_l2_c1_c():
     assert result.exit_code == 2
 
 
+@pytest.mark.smoke
 def test_cli_l2_c1_d():
     """testing  create schema with no existing schema"""
     command_string = "install-utils create-schema"

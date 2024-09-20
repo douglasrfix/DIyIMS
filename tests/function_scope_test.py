@@ -30,6 +30,8 @@ def test_cli_l1_c0():
 
 
 # @pytest.mark.skip(reason="menus")
+
+
 def test_cli_l1_c1():
     """runner can't test the l1 commands with the
     diyims command the you would form the command line"""
@@ -48,6 +50,8 @@ def test_cli_l2_c0():
 
 
 # @pytest.mark.skip(reason="menus")
+
+
 def test_cli_l2_c1_a():
     """testing  install with no option windows 11
     this should also be okay for windows 10
@@ -59,7 +63,8 @@ def test_cli_l2_c1_a():
 
 
 # @pytest.mark.skip(reason="menus")
-@pytest.mark.smoke
+
+
 def test_cli_l2_c1_ab(environ_p):
     """testing  install with no option windows 11
     this should also be okay for windows 10
@@ -72,6 +77,18 @@ def test_cli_l2_c1_ab(environ_p):
 
 # @pytest.mark.skip(reason="menus")
 def test_cli_l2_c1_b(environ_h):
+    """testing  install with --force option windows 11
+    this should also be okay for windows 10  also test default drive letter"""
+    command_string = "install-utils install --force-python"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+# @pytest.mark.skip(reason="menus")
+
+
+def test_cli_l2_c1_n(environ_h):
     """testing  install with --force option windows 11
     this should also be okay for windows 10  also test default drive letter"""
     command_string = "install-utils install --force-python"
