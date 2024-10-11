@@ -10,9 +10,15 @@ CREATE TABLE "header_table" (
 );
 
 CREATE TABLE "peer_table" (
-	"version" TEXT,
-	"peer_ID"	TEXT UNIQUE,
-	"IPNS_name"	TEXT
+	"version"	TEXT,
+	"peer_ID"	TEXT,
+	"update_seq"	INTEGER,
+	"IPNS_name"	TEXT,
+	"update_dts"	TEXT,
+	"platform"	TEXT,
+	"python_version"	TEXT,
+	"ipfs_agent"	TEXT,
+	PRIMARY KEY("peer_ID")
 );
 
 CREATE TABLE "network_table" (
@@ -21,8 +27,10 @@ CREATE TABLE "network_table" (
 );
 
 -- name: insert_peer_row!
-insert into peer_table (version, peer_ID, IPNS_name)
-values (:version, :peer_ID, :IPNS_name);
+insert into peer_table (version, peer_ID, update_seq, IPNS_name, update_dts, platform, python_version,
+		ipfs_agent)
+values (:version, :peer_ID, :update_seq, :IPNS_name, :update_dts, :platform, :python_version,
+		:ipfs_agent);
 
 -- name: insert_header_row!
 insert into header_table (version, object_CID, object_type, insert_DTS,

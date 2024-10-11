@@ -10,6 +10,7 @@ def get_sql_str():
             "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
         )
     else:
+        # NOTE: requires testing under python > 3.8
         sql_str = get_sql_str9()
 
     return sql_str

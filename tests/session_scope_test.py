@@ -5,7 +5,6 @@ import pytest
 from typer.testing import CliRunner
 
 from diyims.diyims import app
-from diyims.experimental import test
 
 runner = CliRunner()
 
@@ -21,30 +20,28 @@ def environ_v(monkeypatch):
     monkeypatch.setenv("OVERRIDE_IPFS_VERSION", "0")
 
 
-@pytest.fixture(scope="function")
-def purge_ipfs():
-    test()
+# NOTE: Need linux installation
 
 
 def test_cli_l2_c1_b(environ):
     """testing  install with --force option windows 11
     this should also be okay for windows 10"""
-    command_string = "install-utils install --force-python"
+    command_string = "install-utils install --force-install"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
 
 
-def test_cli_l2_c1_c():
+def test_cli_l2_c1_c(environ):
     """testing  install with --force option windows 11
     this should also be okay for windows 10 with a prior installation"""
-    command_string = "install-utils install --force-python"
+    command_string = "install-utils install --force-install"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
-    assert result.exit_code == 2
+    assert result.exit_code == 1
 
 
-def test_cli_l2_c1_d():
+def test_cli_l2_c1_d(environ):
     """testing  create schema with no existing schema"""
     command_string = "install-utils create-schema"
     result = runner.invoke(app, shlex.split(command_string))
@@ -52,7 +49,7 @@ def test_cli_l2_c1_d():
     assert result.exit_code == 0
 
 
-def test_cli_l2_c1_e():
+def test_cli_l2_c1_e(environ):
     """testing  create schema with existing schema"""
     command_string = "install-utils create-schema"
     result = runner.invoke(app, shlex.split(command_string))
@@ -60,7 +57,7 @@ def test_cli_l2_c1_e():
     assert result.exit_code == 1
 
 
-def test_cli_l2_c1_f(environ_v):
+def test_cli_l2_c1_f(environ_v, environ):
     """testing  initializing database with no previous initialization and unsupported ipfs version"""
     command_string = "install-utils init-database"
     result = runner.invoke(app, shlex.split(command_string))
@@ -68,7 +65,7 @@ def test_cli_l2_c1_f(environ_v):
     assert result.exit_code == 2
 
 
-def test_cli_l2_c1_f2():
+def test_cli_l2_c1_f2(environ):
     """testing  initializing database with no previous initialization"""
     command_string = "install-utils init-database"
     result = runner.invoke(app, shlex.split(command_string))
@@ -76,9 +73,25 @@ def test_cli_l2_c1_f2():
     assert result.exit_code == 0
 
 
-def test_cli_l2_c1_g(purge_ipfs):
+def test_cli_l2_c1_g(environ):
     """testing  initializing database with previous initialization"""
     command_string = "install-utils init-database"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 1
+
+
+def test_cli_l2_c1_h(environ):
+    """testing  initializing database with previous initialization"""
+    command_string = "experiment"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+def test_cli_l2_c1_i(environ):
+    """testing  initializing database with previous initialization"""
+    command_string = "experiment"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0

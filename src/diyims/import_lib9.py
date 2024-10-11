@@ -12,3 +12,6 @@ def get_car_path9():
     car_path = files("diyims.resources").joinpath("cartext.car").open("rb")
 
     return car_path
+
+
+# NOTE: Requires testing with python > 3.8

@@ -5,8 +5,8 @@ class UnSupportedPlatformError(Exception):
         super().__init__(self.value)
 
     # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
+    # def __str__(self):
+    #     return repr(self.value)
 
 
 class PreExistingInstallationError(Exception):
@@ -16,24 +16,22 @@ class PreExistingInstallationError(Exception):
         super().__init__(self.value)
 
     # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
+    # def __str__(self):
+    #     return repr(self.value)
 
 
 class UnTestedPlatformError(Exception):
     # Constructor or Initializer
-    def __init__(self, system, release, dict):
+    def __init__(self, system, release):
         self.system = system
         self.release = release
-        self.dict = dict
         super().__init__(self.system)
         super().__init__(self.release)
-        super().__init__(self.dict)
 
     # __str__ is to print() the value
 
-    def __str__(self):
-        return repr(self.system)
+    # def __str__(self):
+    #     return repr(self.system)
 
 
 class InvalidDriveLetterError(Exception):
@@ -43,8 +41,8 @@ class InvalidDriveLetterError(Exception):
         super().__init__(self.value)
 
     # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
+    # def __str__(self):
+    #    return repr(self.value)
 
 
 class CreateSchemaError(Exception):
@@ -54,8 +52,8 @@ class CreateSchemaError(Exception):
         super().__init__(self.value)
 
     # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
+    # def __str__(self):
+    #    return repr(self.value)
 
 
 class UnSupportedIPFSVersionError(Exception):
@@ -65,5 +63,16 @@ class UnSupportedIPFSVersionError(Exception):
         super().__init__(self.value)
 
     # __str__ is to print() the value
-    def __str__(self):
-        return repr(self.value)
+    # def __str__(self):
+    #    return repr(self.value)
+
+
+class ApplicationNotInstalledError(Exception):
+    # Constructor or Initializer
+    def __init__(self, value):
+        self.value = value
+        super().__init__(self.value)
+
+    # __str__ is to print() the value
+    # def __str__(self):
+    #    return repr(self.value)

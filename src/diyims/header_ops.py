@@ -4,27 +4,22 @@ import sqlite3
 import aiosql
 import requests
 
-from diyims.error_classes import UnTestedPlatformError
 from diyims.import_lib import get_sql_str
 from diyims.paths import get_path_dict
 from diyims.urls import get_url_dict
 
 
 def ipfs_header_create(DTS, object_CID, object_type):
-    try:
-        path_dict = get_path_dict()
-
-    except UnTestedPlatformError as error:
-        path_dict = error.dict
-
+    path_dict = get_path_dict()
     url_dict = get_url_dict()
 
     sql_str = get_sql_str()
-    connect_path = path_dict["db_path"]
-    header_conn = sqlite3.connect(connect_path)
-    header_conn.row_factory = sqlite3.Row
+
+    connect_path = path_dict["db_file"]
+    conn = sqlite3.connect(connect_path)
+    conn.row_factory = sqlite3.Row
     queries = aiosql.from_str(sql_str, "sqlite3")
-    query_row = queries.select_last_header(header_conn)
+    query_row = queries.select_last_header(conn)
 
     if query_row is None:
         header_dict = {}
@@ -46,13 +41,13 @@ def ipfs_header_create(DTS, object_CID, object_type):
 
         header_CID = "null"
 
-    header_json_path = path_dict["header_path"]
+    header_json_file = path_dict["header_file"]
     add_params = {"only-hash": "false", "pin": "true"}
 
-    with open(header_json_path, "w") as write_file:
+    with open(header_json_file, "w") as write_file:
         json.dump(header_dict, write_file, indent=4)
 
-    add_files = {"file": open(header_json_path, "rb")}
+    add_files = {"file": open(header_json_file, "rb")}
 
     with requests.post(url=url_dict["add"], params=add_params, files=add_files) as r:
         r.raise_for_status()
@@ -77,7 +72,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
         IPNS_name = json_dict["Name"]
 
     queries.insert_header_row(
-        header_conn,
+        conn,
         header_dict["version"],
         header_dict["object_CID"],
         header_dict["object_type"],
@@ -85,8 +80,8 @@ def ipfs_header_create(DTS, object_CID, object_type):
         header_dict["prior_header_CID"],
         header_CID,
     )
-    queries.commit(header_conn)
+    queries.commit(conn)
 
-    header_conn.close()
+    conn.close()
 
     return (header_CID, IPNS_name)

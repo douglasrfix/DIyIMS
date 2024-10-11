@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a6"
+version = "0.0.0a7"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -17,6 +17,13 @@ requests = ">=2.32.0"
 aiosql = ">=9.0"
 typer = ">=0.12.4"
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--capture=tee-sys --cov=diyims --cov-append --cov-report=term-missing --basetemp=C:\\Users\\dougl\\diyims\\tmp"
+# testpaths = [
+#    "tests",
+
+#]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=3.0.0"
@@ -38,7 +45,7 @@ select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 legacy_tox_ini = """
     [tox]
     minversion = 3.24
-    envlist = py38,py39,py39
+    envlist = py38
     isolated_build = True
     skip_missing_interpreters = True
 
@@ -55,7 +62,7 @@ legacy_tox_ini = """
         testing
     #commands =
     #    pytest {posargs}
-    commands = pytest  -v \
+    commands = pytest   \
      --capture=tee-sys --cov --cov-append --cov-report=term-missing \
      --basetemp=C:\\Users\\dougl\\diyims\\tmp
 
