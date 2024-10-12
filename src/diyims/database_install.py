@@ -9,14 +9,15 @@ import requests
 from rich import print
 
 from diyims.error_classes import (
+    ApplicationNotInstalledError,
     CreateSchemaError,
     PreExistingInstallationError,
     UnSupportedIPFSVersionError,
-    UnTestedPlatformError,
 )
 from diyims.header_ops import ipfs_header_create
-from diyims.import_lib import get_car_path, get_sql_str
+from diyims.py_version_dep import get_car_path, get_sql_str
 from diyims.paths import get_path_dict
+from diyims.sql_table_dict import get_network_table_dict, get_peer_table_dict
 from diyims.urls import get_url_dict
 
 
@@ -24,12 +25,12 @@ def create():
     try:
         path_dict = get_path_dict()
 
-    except UnTestedPlatformError as error:
-        path_dict = error.dict
+    except ApplicationNotInstalledError:
+        raise
 
     sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
-    connect_path = path_dict["db_path"]
+    connect_path = path_dict["db_file"]
     conn = sqlite3.connect(connect_path)
 
     try:
@@ -45,23 +46,19 @@ def init():
     try:
         path_dict = get_path_dict()
 
-    except UnTestedPlatformError as error:
-        path_dict = error.dict
+    except ApplicationNotInstalledError:
+        raise
 
-    network_table_dict = {}
-    network_table_dict["version"] = "0"
-    network_table_dict["network_name"] = "null"
     url_dict = get_url_dict()
-
     sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
-    connect_path = path_dict["db_path"]
+    connect_path = path_dict["db_file"]
     conn = sqlite3.connect(connect_path)
     network_name = queries.select_network_name(conn)
 
     if network_name is not None:
         conn.close()
-        raise (PreExistingInstallationError(""))
+        raise (PreExistingInstallationError(" "))
 
     conn.close()
     conn = sqlite3.connect(connect_path)
@@ -78,6 +75,8 @@ def init():
             "kubo/0.25.0/",
             "kubo/0.26.0/",
             "kubo/0.27.0/",
+            "kubo/0.28.0/",
+            "kubo/0.29.0/",
         ]
         match_count = 0
         for x in supported_agents:
@@ -94,11 +93,6 @@ def init():
 
         if match_count == 0:
             raise (UnSupportedIPFSVersionError(json_dict["AgentVersion"]))
-
-    peer_table_dict = {}
-    peer_table_dict["version"] = "0"
-    peer_table_dict["peer_id"] = "null"
-    peer_table_dict["IPNS_name"] = "null"
 
     """
     Create anchor entry of the linked list.
@@ -129,17 +123,17 @@ def init():
         r.raise_for_status()
         json_dict = json.loads(r.text)
 
-    peer_table_dict["version"] = "0"
+    peer_table_dict = get_peer_table_dict()
     peer_table_dict["peer_id"] = json_dict["ID"]
     peer_table_dict["IPNS_name"] = IPNS_name
 
-    peer_path = path_dict["peer_path"]
+    peer_file = path_dict["peer_file"]
     add_params = {"only-hash": "false", "pin": "true"}
 
-    with open(peer_path, "w") as write_file:
+    with open(peer_file, "w") as write_file:
         json.dump(peer_table_dict, write_file, indent=4)
 
-    add_files = {"file": open(peer_path, "rb")}
+    add_files = {"file": open(peer_file, "rb")}
 
     with requests.post(url=url_dict["add"], params=add_params, files=add_files) as r:
         r.raise_for_status()
@@ -153,7 +147,7 @@ def init():
     print("Published second header")
 
     print(f"First network peer entry CID '{object_CID}'")
-
+    network_table_dict = get_network_table_dict()
     network_table_dict["network_name"] = import_car()
     print(network_table_dict["network_name"])
 
@@ -161,8 +155,14 @@ def init():
         conn,
         peer_table_dict["version"],
         peer_table_dict["peer_id"],
+        peer_table_dict["update_seq"],
         peer_table_dict["IPNS_name"],
+        peer_table_dict["update_dts"],
+        peer_table_dict["platform"],
+        peer_table_dict["python_version"],
+        peer_table_dict["ipfs_agent"],
     )
+
     queries.commit(conn)
     queries.insert_network_row(
         conn,
@@ -189,7 +189,15 @@ def import_car():
         url=url_dict["dag_import"], params=dag_import_params, files=dag_import_files
     ) as r:
         r.raise_for_status()
+        print(r)
+        print(r.text)
         json_dict = json.loads(r.text)
         imported_CID = json_dict["Root"]["Cid"]["/"]
+
+        pin_add_params = {"arg": imported_CID}
+        with requests.post(
+            url_dict["pin_add"], params=pin_add_params, stream=False
+        ) as r:
+            r.raise_for_status()
 
     return imported_CID

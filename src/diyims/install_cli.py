@@ -12,6 +12,7 @@ from diyims.error_classes import (
     UnSupportedIPFSVersionError,
     UnSupportedPlatformError,
     UnTestedPlatformError,
+    ApplicationNotInstalledError,
 )
 from diyims.install import install_app
 
@@ -28,7 +29,7 @@ def install(
             rich_help_panel="Install Options",
         ),
     ] = "Default",
-    force_python: Annotated[
+    force_install: Annotated[
         bool, typer.Option(help="Force installation", rich_help_panel="Install Options")
     ] = False,
 ):
@@ -45,7 +46,7 @@ def install(
 
     """
     try:
-        install_app(drive_letter, force_python)
+        install_app(drive_letter, force_install)
 
     except UnTestedPlatformError as error:
         print(
@@ -58,10 +59,10 @@ def install(
 
     except PreExistingInstallationError:
         print("A previous installation was detected. Current installation not changed.")
-        raise typer.Exit(code=2)
+        raise typer.Exit(code=1)
 
     except InvalidDriveLetterError as error:
-        print(f"Provide drive letter {error.value} is invalid.")
+        print(f"Provided drive letter {error.value} is invalid.")
         raise typer.Exit(code=2)
 
     except UnSupportedPlatformError as error:
@@ -80,6 +81,10 @@ def create_schema():
         print(
             f"There was a schema creation problem. If {error.value} is about a table already existing then this is simply a symptom of an existing installation. No changes were made."
         )
+        raise typer.Exit(code=1)
+
+    except ApplicationNotInstalledError:
+        print("The application infrastructure not yet installed.")
         raise typer.Exit(code=1)
 
 

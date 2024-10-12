@@ -14,4 +14,4 @@ needs an text editor, non text media manager. Storage space and
 distribution capability to a set of subscribers. It would be nice to be
 able to generate voice from the text as well.
 
-pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ diyims
+pip install --upgrade --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ diyims

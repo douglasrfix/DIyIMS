@@ -4,7 +4,7 @@ import sys
 from diyims.error_classes import UnSupportedPlatformError
 
 
-def get_os_platform():
+def test_os_platform():
     try:
         sys_platform = os.environ["OVERRIDE_PLATFORM"]
 
@@ -17,10 +17,8 @@ def get_os_platform():
         )
         raise (UnSupportedPlatformError(sys_platform))
     elif sys_platform.startswith("linux"):
-        print(
-            "Linux(a family of unix like environments using the Linux kernel from Linus Torvalds) found and not tested"
-        )
-        raise (UnSupportedPlatformError(sys_platform))
+        """Linux(a family of unix like environments using the Linux kernel from Linus Torvalds) found and not tested"""
+        return sys_platform
     elif sys_platform.startswith("aix"):
         print("AIX(IBM Unix variant)  found and not supported")
         raise (UnSupportedPlatformError(sys_platform))
@@ -28,6 +26,7 @@ def get_os_platform():
         print("WASI(Web Assembly) found and not supported")
         raise (UnSupportedPlatformError(sys_platform))
     elif sys_platform.startswith("win32"):
+        """win32 is valid for 32 and 64 bit systems"""
         return sys_platform
     elif sys_platform.startswith("cygwin"):
         print("CYGWIN(Unix like environment for Windows) found and not supported")

@@ -12,6 +12,8 @@ import typer
 from diyims import install_cli
 from diyims.experimental import test
 
+# from diyims.find_providers import get_providers
+
 app = typer.Typer(
     no_args_is_help=True, help="Base command for the DIY Independent Media Services."
 )
@@ -29,3 +31,15 @@ def experiment():
 
     """
     test()
+
+    '''
+    @app.command()
+    def get_providers():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+
+    """
+    get_providers()
+    '''

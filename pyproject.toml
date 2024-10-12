@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a6"
+version = "0.0.0a7"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -17,10 +17,24 @@ requests = ">=2.32.0"
 aiosql = ">=9.0"
 typer = ">=0.12.4"
 
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-rA",
+    "-vv",
+    "--capture=tee-sys",
+    "--cov=diyims",
+    "--cov-append",
+    "--cov-report=term-missing",
+    "--basetemp=C:\\Users\\dougl\\diyims\\tmp",
+]
+# testpaths = [
+#    "tests",
+
+#]
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=3.0.0"
-tox = ">= 4.9.0"
 pytest = ">= 8.0.0"
 pytest-cov = ">=5.0.0"
 flake8-pyproject = "^1.2.3"
@@ -34,52 +48,6 @@ max-line-length = 80
 max-complexity = 18
 select = ['B', 'C', 'E', 'F', 'W', 'T4', 'B9']
 
-[tool.tox]
-legacy_tox_ini = """
-    [tox]
-    minversion = 3.24
-    envlist = py38,py39,py39
-    isolated_build = True
-    skip_missing_interpreters = True
-
-    [testenv]
-    env_list = py38,py39,py310
-    allowlist_externals = pytest
-    description = Invoke pytest to run automated tests
-    setenv =
-        TOXINIDIR = {toxinidir}
-    passenv =
-        HOME
-        SETUPTOOLS_*
-    extras =
-        testing
-    #commands =
-    #    pytest {posargs}
-    commands = pytest  -v \
-     --capture=tee-sys --cov --cov-append --cov-report=term-missing \
-     --basetemp=C:\\Users\\dougl\\diyims\\tmp
-
-[testenv:py38]
-    deps =
-        pytest
-        pytest-sugar
-        pytest-cov
-
-[testenv:py39]
-    deps =
-        pytest
-        pytest-sugar
-        pytest-cov
-
-
-[testenv:py310]
-    deps =
-        pytest
-        pytest-sugar
-        pytest-cov
-
-
-"""
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

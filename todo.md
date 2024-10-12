@@ -24,3 +24,27 @@
 # [x]: explore git enhancement
 # [x]: refactor unsupported platform to enhance self documentation
 # [x]: enhanced tox config to ease future python version testing
+# [ ]: find providers of the network name and feed them to peer table maintenance
+# [ ]: peer table maintenance ignores existing peers or negotiates with the peer to register
+# [ ]: peer table maintenance adds new entries and updates existing entries from published tables or registrations
+# [x]: rename import_lib to py_version_dep
+# [ ]: create ipfs_version_dep
+# [ ]: create platform_dep
+# [ ]: refactor in line dictionary specification to include from a get_????_dict where ??? is the table name
+# [ ]: evaluate pin roots value true false for real effect.  It doesn't seem to pin if true and it false to produce a response if #      its false. using ipfs help for each command that is used to detect when something changed
+# [ ]: split the issue into multiple steps to facilitate testing on multiple platforms to give me some peers to deal with.
+# [x]: need a python version override to remove the --force for this test
+# [x]: untested platform logic has moved and no longer supplies path dict in error message
+    # remove from db_install
+# [x]: remove untested error from db_init
+# [x]: remove untested platform from header_ops
+# [x]: need test for each value in unSupported list
+# [x]: cleanup environ after use use monkeypatch
+# [x]: need test for App not installed path
+# [x]: need test for no override in get windows path
+# [ ]: Remove tox from 3.8.1
+# [ ]: create 9? environment for testing
+# [x]: create process for posix (linux) paths
+# [x]: create tests for posix paths
+# [ ]: support posix mount points
+# [ ]: support testing of posix mount points

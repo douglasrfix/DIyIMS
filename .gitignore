@@ -130,6 +130,7 @@ ENV/
 env.bak/
 venv.bak/
 venv*
+.venv*
 3.*
 
 # Spyder project settings
@@ -163,3 +164,5 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 .vscode/settings.json
+C:\Users\dougl\AppData\Roaming\Code\*
+C:\Users\dougl\AppData\Roaming\diyims\*
