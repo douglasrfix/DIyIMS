@@ -13,7 +13,7 @@ def get_install_template_dict():
     if os_platform.startswith("win32"):
         install_template_dict = get_win32_template_dict()
 
-    elif os_platform.startswith("linux"):  # NOTE: need test for linux
+    elif os_platform.startswith("linux"):
         install_template_dict = get_linux_template_dict()
 
     return install_template_dict

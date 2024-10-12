@@ -4,8 +4,8 @@ import sqlite3
 import aiosql
 import requests
 
-from diyims.import_lib import get_sql_str
 from diyims.paths import get_path_dict
+from diyims.py_version_dep import get_sql_str
 from diyims.urls import get_url_dict
 
 

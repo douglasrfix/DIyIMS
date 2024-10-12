@@ -4,7 +4,7 @@ from pathlib import Path
 
 def get_linux_template_dict():
     try:
-        xdg_home = Path(os.environ["OVERRIDE_HOME"])  # NOTE: need test for this
+        xdg_home = Path(os.environ["OVERRIDE_HOME"])
 
     except KeyError:
         xdg_home = Path.home()

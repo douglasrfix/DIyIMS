@@ -19,7 +19,15 @@ typer = ">=0.12.4"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--capture=tee-sys --cov=diyims --cov-append --cov-report=term-missing --basetemp=C:\\Users\\dougl\\diyims\\tmp"
+addopts = [
+    "-rA",
+    "-vv",
+    "--capture=tee-sys",
+    "--cov=diyims",
+    "--cov-append",
+    "--cov-report=term-missing",
+    "--basetemp=C:\\Users\\dougl\\diyims\\tmp",
+]
 # testpaths = [
 #    "tests",
 

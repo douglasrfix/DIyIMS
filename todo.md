@@ -27,7 +27,7 @@
 # [ ]: find providers of the network name and feed them to peer table maintenance
 # [ ]: peer table maintenance ignores existing peers or negotiates with the peer to register
 # [ ]: peer table maintenance adds new entries and updates existing entries from published tables or registrations
-# [ ]: rename import_lib to py_version_dep
+# [x]: rename import_lib to py_version_dep
 # [ ]: create ipfs_version_dep
 # [ ]: create platform_dep
 # [ ]: refactor in line dictionary specification to include from a get_????_dict where ??? is the table name
@@ -44,5 +44,7 @@
 # [x]: need test for no override in get windows path
 # [ ]: Remove tox from 3.8.1
 # [ ]: create 9? environment for testing
-# [ ]: create process for posix (linux) paths
-# [ ]: create tests for posix paths
+# [x]: create process for posix (linux) paths
+# [x]: create tests for posix paths
+# [ ]: support posix mount points
+# [ ]: support testing of posix mount points

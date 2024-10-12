@@ -15,7 +15,7 @@ from diyims.error_classes import (
     UnSupportedIPFSVersionError,
 )
 from diyims.header_ops import ipfs_header_create
-from diyims.import_lib import get_car_path, get_sql_str
+from diyims.py_version_dep import get_car_path, get_sql_str
 from diyims.paths import get_path_dict
 from diyims.sql_table_dict import get_network_table_dict, get_peer_table_dict
 from diyims.urls import get_url_dict
