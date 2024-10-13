@@ -25,9 +25,14 @@ def install_app(drive_letter, force_install):
     except UnSupportedPlatformError:
         raise
 
+    override_drive = "False"
     if drive_letter != "Default" and os_platform == "win32":
-        if Path(drive_letter + ":/").exists() is not True:
-            raise (InvalidDriveLetterError(drive_letter))
+        if Path(drive_letter + "/").exists() is not True:
+            try:
+                override_drive = os.environ["OVERRIDE_DRIVE"]
+
+            except KeyError:
+                raise (InvalidDriveLetterError(drive_letter))
 
     try:
         python_release = os.environ["OVERRIDE_RELEASE"]
@@ -39,6 +44,13 @@ def install_app(drive_letter, force_install):
         raise UnTestedPlatformError(platform.system(), platform.release())
 
     install_template_dict = get_install_template_dict()
+
+    if drive_letter != "Default":
+        if drive_letter != Path(install_template_dict["db_path"]).drive:
+            install_template_dict["db_path"] = Path(drive_letter + "/").joinpath(
+                "diyims", "Data"
+            )
+
     config_path = install_template_dict["config_path"]
     db_path = install_template_dict["db_path"]
     log_path = install_template_dict["log_path"]
@@ -49,7 +61,9 @@ def install_app(drive_letter, force_install):
     if config_file.exists():
         raise (PreExistingInstallationError(" "))
 
-    db_path.mkdir(mode=755, parents=True, exist_ok=True)
+    if override_drive != "True":
+        db_path.mkdir(mode=755, parents=True, exist_ok=True)
+
     config_path.mkdir(mode=755, parents=True, exist_ok=True)
     log_path.mkdir(mode=755, parents=True, exist_ok=True)
     header_path.mkdir(mode=755, parents=True, exist_ok=True)

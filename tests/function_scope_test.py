@@ -50,6 +50,14 @@ def environ_p(monkeypatch, tmp_path):
     monkeypatch.setenv("OVERRIDE_HOME", p)
 
 
+@pytest.fixture(scope="function")
+def environ_q(monkeypatch, tmp_path):
+    monkeypatch.setenv("OVERRIDE_RELEASE", "8")
+    p = str(tmp_path)
+    monkeypatch.setenv("OVERRIDE_HOME", p)
+    monkeypatch.setenv("OVERRIDE_DRIVE", "True")
+
+
 # @pytest.mark.skip(reason="menus")
 def test_cli_l1_c0():
     """runner can't test the l1 command with noargs =true"""
@@ -118,7 +126,7 @@ def test_cli_l2_c1_a1(environ_e):
 def test_cli_l2_c1_a2(environ_e):
     """testing  install with drive option windows 11
     this should also be okay for windows 10"""
-    command_string = "install-utils install --drive-letter 'D'"
+    command_string = "install-utils install --drive-letter 'C'"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 2
@@ -128,7 +136,17 @@ def test_cli_l2_c1_a2(environ_e):
 def test_cli_l2_c1_a3(environ_p):
     """testing  install with drive option windows 11
     this should also be okay for windows 10"""
-    command_string = "install-utils install --drive-letter 'C'"
+    command_string = "install-utils install --drive-letter 'C:'"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+# @pytest.mark.skip(reason="menus")
+def test_cli_l2_c1_a4(environ_q):
+    """testing  install with drive option windows 11
+    this should also be okay for windows 10"""
+    command_string = "install-utils install --drive-letter 'D:'"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

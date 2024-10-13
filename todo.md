@@ -28,8 +28,8 @@
 # [ ]: peer table maintenance ignores existing peers or negotiates with the peer to register
 # [ ]: peer table maintenance adds new entries and updates existing entries from published tables or registrations
 # [x]: rename import_lib to py_version_dep
-# [ ]: create ipfs_version_dep
-# [ ]: create platform_dep
+# [ ]: create ipfs_version_dep place holder
+# [ ]: create platform_dep place holder
 # [ ]: refactor in line dictionary specification to include from a get_????_dict where ??? is the table name
 # [ ]: evaluate pin roots value true false for real effect.  It doesn't seem to pin if true and it false to produce a response if #      its false. using ipfs help for each command that is used to detect when something changed
 # [ ]: split the issue into multiple steps to facilitate testing on multiple platforms to give me some peers to deal with.
@@ -42,9 +42,10 @@
 # [x]: cleanup environ after use use monkeypatch
 # [x]: need test for App not installed path
 # [x]: need test for no override in get windows path
-# [ ]: Remove tox from 3.8.1
-# [ ]: create 9? environment for testing
+# [x]: Remove tox from 3.8.1
+# [x]: create 9? environment for testing
 # [x]: create process for posix (linux) paths
 # [x]: create tests for posix paths
 # [ ]: support posix mount points
 # [ ]: support testing of posix mount points
+# [x]: fix drive letter support
