@@ -24,7 +24,7 @@ def install(
     drive_letter: Annotated[
         Optional[str],
         typer.Option(
-            help="The drive letter to use if not the default eg 'C:', note the colon",
+            help="The drive letter to use if not the default eg 'C:', note the colon.",
             show_default=False,
             rich_help_panel="Install Options",
         ),
