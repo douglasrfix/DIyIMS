@@ -1,5 +1,4 @@
 import json
-import os
 import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import Error
@@ -12,13 +11,13 @@ from diyims.error_classes import (
     ApplicationNotInstalledError,
     CreateSchemaError,
     PreExistingInstallationError,
-    UnSupportedIPFSVersionError,
 )
-from diyims.header_ops import ipfs_header_create
+from diyims.header_utils import ipfs_header_create
+from diyims.ipfs_utils import test_ipfs_version
+from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_car_path, get_sql_str
-from diyims.paths import get_path_dict
 from diyims.sql_table_dict import get_network_table_dict, get_peer_table_dict
-from diyims.urls import get_url_dict
+from diyims.url_utils import get_url_dict
 
 
 def create():
@@ -62,37 +61,8 @@ def init():
 
     conn.close()
     conn = sqlite3.connect(connect_path)
-    conn.row_factory = sqlite3.Row
 
-    with requests.post(url_dict["id"], stream=False) as r:
-        r.raise_for_status()
-        json_dict = json.loads(r.text)
-
-        supported_agents = [
-            "kubo/0.22.0/",
-            "kubo/0.23.0/",
-            "kubo/0.24.0/",
-            "kubo/0.25.0/",
-            "kubo/0.26.0/",
-            "kubo/0.27.0/",
-            "kubo/0.28.0/",
-            "kubo/0.29.0/",
-        ]
-        match_count = 0
-        for x in supported_agents:
-            if json_dict["AgentVersion"] not in x:
-                pass
-            else:
-                match_count = match_count + 1
-
-        try:
-            match_count = int(os.environ["OVERRIDE_IPFS_VERSION"])
-
-        except KeyError:
-            pass
-
-        if match_count == 0:
-            raise (UnSupportedIPFSVersionError(json_dict["AgentVersion"]))
+    test_ipfs_version()
 
     """
     Create anchor entry of the linked list.
@@ -111,6 +81,10 @@ def init():
 
     print(f"First header CID (head of chain) '{header_CID}'")
     print("Published first header")
+
+    object_CID = IPNS_name
+    object_type = "IPNS_name"
+    header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
     """
 
@@ -151,6 +125,11 @@ def init():
     network_table_dict["network_name"] = import_car()
     print(network_table_dict["network_name"])
 
+    object_CID = network_table_dict["network_name"]
+    object_type = "network_name"
+    header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
+    print(IPNS_name)
+
     queries.insert_peer_row(
         conn,
         peer_table_dict["version"],
@@ -179,7 +158,7 @@ def import_car():
     car_path = get_car_path()
     dag_import_files = {"file": car_path}
     dag_import_params = {
-        "pin-roots": "true",
+        "pin-roots": "true",  # NOTE: http status 500 if false but true does not pin given not in off-line mode
         "silent": "false",
         "stats": "false",
         "allow-big-block": "false",
@@ -189,11 +168,10 @@ def import_car():
         url=url_dict["dag_import"], params=dag_import_params, files=dag_import_files
     ) as r:
         r.raise_for_status()
-        print(r)
-        print(r.text)
         json_dict = json.loads(r.text)
         imported_CID = json_dict["Root"]["Cid"]["/"]
 
+        # NOTE: import does not pin so it must be done manually
         pin_add_params = {"arg": imported_CID}
         with requests.post(
             url_dict["pin_add"], params=pin_add_params, stream=False

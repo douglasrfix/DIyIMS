@@ -3,14 +3,13 @@ import sys
 
 def get_sql_str():
     if sys.version_info[1] == 8:
-        from importlib import resources
+        from importlib import resources  # NOTE: Deprecated in 3.11
 
         sql_str = resources.read_text(
             "diyims.sql", "scripts.sql", encoding="utf-8", errors="strict"
         )
     else:
-        # NOTE: requires testing under python > 3.8
-        from importlib.resources import files
+        from importlib.resources import files  # NOTE: New in 3.9
 
         sql_str = (
             files("diyims.sql").joinpath("scripts.sql").read_text(encoding="utf-8")

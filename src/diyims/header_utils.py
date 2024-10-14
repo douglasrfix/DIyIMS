@@ -4,9 +4,9 @@ import sqlite3
 import aiosql
 import requests
 
-from diyims.paths import get_path_dict
+from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.urls import get_url_dict
+from diyims.url_utils import get_url_dict
 
 
 def ipfs_header_create(DTS, object_CID, object_type):
@@ -85,3 +85,19 @@ def ipfs_header_create(DTS, object_CID, object_type):
     conn.close()
 
     return (header_CID, IPNS_name)
+
+
+def test_header_by_IPNS_name(IPNS_name):
+    # path_dict = get_path_dict()
+    url_dict = get_url_dict()
+    ipns_path = "/ipns/" + IPNS_name
+    get_arg = {
+        "arg": ipns_path,
+        # "output": str(path_dict['log_path']) + '/' + IPNS_name + '.txt',  # NOTE: Path does not work
+    }
+
+    with requests.post(url_dict["get"], params=get_arg, stream=False) as r:
+        r.raise_for_status()
+    print(r)
+    print(r.text)
+    return
