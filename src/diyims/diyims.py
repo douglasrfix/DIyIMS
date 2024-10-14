@@ -10,7 +10,7 @@
 import typer
 
 from diyims import install_cli
-from diyims.ipfs_utils import purge
+from diyims.ipfs_utils import force_purge, purge
 
 # from diyims.find_providers import get_providers
 
@@ -22,16 +22,16 @@ app = typer.Typer(
 app.add_typer(install_cli.app, name="install-utils")
 
 
-"""
 @app.command()
-def experiment():
+def danger():
+    """
     Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
+    """
 
-    test()
-"""
+    force_purge()
 
 
 @app.command()

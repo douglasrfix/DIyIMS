@@ -23,9 +23,30 @@ def purge():
     header_table_rows = queries.select_all_headers(conn)
 
     for row in header_table_rows:
-        print(f"object_CID '{row['object_CID']}'")
-        print(f"header_CID '{row['header_CID']}'")
-        if row["object_CID"] != "null":
+        # print(f"header_CID '{row['header_CID']}'")
+        if row["object_type"] == "IPNS_name":
+            print(
+                f"IPNS_name '{row['object_CID']}'"
+            )  # NOTE: needs a function to name in danger
+            header_CID = row["object_CID"]
+
+            ipfs_path = "/ipfs/" + header_CID
+
+            name_publish_arg = {
+                "arg": ipfs_path,
+                "resolve": "false",
+                "lifetime": "10s",
+                "ttl": "10s",
+                "key": "self",
+                "ipns-base": "base36",
+            }
+
+            with requests.post(
+                url_dict["name_publish"], params=name_publish_arg, stream=False
+            ) as r:
+                r.raise_for_status()
+
+        elif row["object_CID"] != "null":
             add_params = {"arg": row["object_CID"]}
 
             with requests.post(
@@ -79,3 +100,25 @@ def test_ipfs_version():
             raise (UnSupportedIPFSVersionError(json_dict["AgentVersion"]))
 
     return
+
+
+def force_purge():
+    url_dict = get_url_dict()
+    with requests.post(url_dict["pin_list"], stream=False) as r:
+        r.raise_for_status()
+        json_dict = json.loads(r.text)
+
+        try:
+            for key in json_dict["Keys"]:
+                add_params = {"arg": key}
+
+                with requests.post(
+                    url_dict["pin_remove"], params=add_params, stream=False
+                ) as r:
+                    r.raise_for_status()
+
+        except KeyError:
+            pass
+
+    with requests.post(url_dict["run_gc"], stream=False) as r:
+        r.raise_for_status()
