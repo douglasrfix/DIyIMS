@@ -16,3 +16,14 @@ def get_peer_table_dict():
     peer_table_dict["python_version"] = "null"
     peer_table_dict["ipfs_agent"] = "null"
     return peer_table_dict
+
+
+def get_header_table_dict():
+    header_table_dict = {}
+    header_table_dict["version"] = "0"
+    header_table_dict["object_CID"] = "null"
+    header_table_dict["object_type"] = "null"
+    header_table_dict["insert_DTS"] = "null"
+    header_table_dict["prior_header_CID"] = "null"
+    header_table_dict["header_CID"] = "null"
+    return header_table_dict

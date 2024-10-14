@@ -4,9 +4,9 @@ import sqlite3
 import aiosql
 import requests
 
-from diyims.paths import get_path_dict
+from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.urls import get_url_dict
+from diyims.url_utils import get_url_dict
 
 
 def ipfs_header_create(DTS, object_CID, object_type):

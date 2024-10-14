@@ -83,15 +83,7 @@ def test_cli_l2_c1_g(environ):
 
 def test_cli_l2_c1_h(environ):
     """testing  initializing database with previous initialization"""
-    command_string = "experiment"
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0
-
-
-def test_cli_l2_c1_i(environ):
-    """testing  initializing database with previous initialization"""
-    command_string = "experiment"
+    command_string = "ipfs-purge"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

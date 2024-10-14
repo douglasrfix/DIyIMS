@@ -59,6 +59,20 @@ ORDER BY
 	insert_DTS DESC
 ;
 
+-- name: select_all_headers
+SELECT
+ 	version,
+   	object_CID,
+   	object_type,
+   	insert_DTS,
+   	prior_header_CID,
+   	header_CID
+
+FROM
+   header_table
+
+;
+
 -- name: select_network_name^
 SELECT
  	version,

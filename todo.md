@@ -32,7 +32,7 @@
 # [ ]: create platform_dep place holder
 # [ ]: refactor in line dictionary specification to include from a get_????_dict where ??? is the table name
 # [ ]: evaluate pin roots value true false for real effect.  It doesn't seem to pin if true and it false to produce a response if #      its false. using ipfs help for each command that is used to detect when something changed
-# [ ]: split the issue into multiple steps to facilitate testing on multiple platforms to give me some peers to deal with.
+# [x]: split the issue into multiple steps to facilitate testing on multiple platforms to give me some peers to deal with.
 # [x]: need a python version override to remove the --force for this test
 # [x]: untested platform logic has moved and no longer supplies path dict in error message
     # remove from db_install

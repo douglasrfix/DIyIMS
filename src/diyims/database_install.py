@@ -1,5 +1,6 @@
 import json
-import os
+
+# import os
 import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import Error
@@ -8,17 +9,17 @@ import aiosql
 import requests
 from rich import print
 
-from diyims.error_classes import (
+from diyims.error_classes import (  # UnSupportedIPFSVersionError,
     ApplicationNotInstalledError,
     CreateSchemaError,
     PreExistingInstallationError,
-    UnSupportedIPFSVersionError,
 )
-from diyims.header_ops import ipfs_header_create
+from diyims.header_utils import ipfs_header_create
+from diyims.ipfs_utils import test_ipfs_version
+from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_car_path, get_sql_str
-from diyims.paths import get_path_dict
 from diyims.sql_table_dict import get_network_table_dict, get_peer_table_dict
-from diyims.urls import get_url_dict
+from diyims.url_utils import get_url_dict
 
 
 def create():
@@ -63,7 +64,9 @@ def init():
     conn.close()
     conn = sqlite3.connect(connect_path)
     conn.row_factory = sqlite3.Row
+    test_ipfs_version()
 
+    """
     with requests.post(url_dict["id"], stream=False) as r:
         r.raise_for_status()
         json_dict = json.loads(r.text)
@@ -93,7 +96,7 @@ def init():
 
         if match_count == 0:
             raise (UnSupportedIPFSVersionError(json_dict["AgentVersion"]))
-
+"""
     """
     Create anchor entry of the linked list.
     It is created so that the entries pointing to real objects have a prior CID
