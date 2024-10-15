@@ -19,7 +19,7 @@ import json
 
 import requests
 
-from diyims.urls import get_url_dict
+from url_utils import get_url_dict
 
 
 def get_providers():

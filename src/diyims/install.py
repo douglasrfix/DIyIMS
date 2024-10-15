@@ -14,8 +14,8 @@ from diyims.error_classes import (
     UnTestedPlatformError,
 )
 from diyims.os_platform import test_os_platform
-from diyims.paths import get_install_template_dict
-from diyims.urls import get_url_dict
+from diyims.path_utils import get_install_template_dict
+from diyims.url_utils import get_url_dict
 
 
 def install_app(drive_letter, force_install):
