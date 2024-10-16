@@ -10,9 +10,11 @@
 import typer
 
 from diyims import install_cli
-from diyims.ipfs_utils import force_purge, purge
 
-# from diyims.find_providers import get_providers
+# import diyims
+from diyims.find_providers import get_providers
+from diyims.ipfs_utils import force_purge, purge
+from diyims.capture_want_lists import get_unprocessed_peers
 
 app = typer.Typer(
     no_args_is_help=True, help="Base command for the DIY Independent Media Services."
@@ -42,14 +44,22 @@ def ipfs_purge():
     """
     purge()
 
-    '''
-    @app.command()
-    def get_providers():
+
+@app.command()
+def find_providers():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
-
     """
     get_providers()
-    '''
+
+
+@app.command()
+def capture_want_lists():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    get_unprocessed_peers()

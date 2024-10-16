@@ -83,6 +83,22 @@ FROM
 
 ;
 
+-- name: select_unprocessed_peers
+SELECT
+ 	version,
+   	peer_ID,
+   	update_seq,
+	IPNS_name,
+   	update_dts,
+   	platform,
+	python_version,
+   	ipfs_agent
+
+FROM
+   peer_table
+
+;
+
 
 -- name: commit!
 commit;

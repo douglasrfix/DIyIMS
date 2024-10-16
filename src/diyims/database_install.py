@@ -100,6 +100,7 @@ def init():
     peer_table_dict = get_peer_table_dict()
     peer_table_dict["peer_id"] = json_dict["ID"]
     peer_table_dict["IPNS_name"] = IPNS_name
+    peer_table_dict["update_dts"] = DTS
 
     peer_file = path_dict["peer_file"]
     add_params = {"only-hash": "false", "pin": "true"}

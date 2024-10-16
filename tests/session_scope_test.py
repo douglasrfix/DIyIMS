@@ -82,7 +82,7 @@ def test_cli_l2_c1_g(environ):
 
 
 # @pytest.mark.skip(reason="purge")   # NOTE: If this test is skipped you must force system purge to clean up
-def test_cli_l2_c1_h(environ):
+def test_cli_l2_c1_purge(environ):
     """testing  initializing database with previous initialization"""
     command_string = "ipfs-purge"
     result = runner.invoke(app, shlex.split(command_string))

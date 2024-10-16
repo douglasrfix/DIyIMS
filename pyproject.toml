@@ -20,6 +20,7 @@ typer = ">=0.12.4"
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
+    "-m component",
     "-rA",
     "-vv",
     "--capture=tee-sys",
@@ -28,11 +29,10 @@ addopts = [
     "--cov-report=term-missing",
     "--basetemp=C:\\Users\\dougl\\diyims\\tmp",
 ]
-# testpaths = [
-#    "tests",
-
-#]
-
+markers = [
+    "setup",
+    "component",
+]
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=3.0.0"
 pytest = ">= 8.0.0"

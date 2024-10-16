@@ -171,37 +171,3 @@ def test_cli_l2_c1_b01(environ_l):
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
-
-
-@pytest.mark.skip(reason="native")
-# @pytest.mark.run
-def test_cli_l2_c1_b02(environ_m):
-    """testing  general install 'real path'process for linux and unspecified drive letter"""
-    command_string = "install-utils install"
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0
-
-
-@pytest.mark.skip(reason="native")
-# @pytest.mark.run
-def test_cli_l2_c1_b1():
-    """testing install into 'real path' not temporary test path process (--force option due to test environment being windows 11)
-    and unspecified drive letter"""
-    command_string = "install-utils install --force-install"
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0
-
-
-@pytest.mark.skip(reason="danger")
-# @pytest.mark.run
-def test_cli_l2_c_danger():
-    """testing install into 'real path' not temporary test path process (--force option due to test environment being windows 11)
-    and unspecified drive letter"""
-    command_string = (
-        "danger"  # NOTE: need to add --force-purge maybe with hidden option?
-    )
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0

@@ -9,5 +9,6 @@ def get_url_dict():
     url_dict["pin_list"] = "http://127.0.0.1:5001/api/v0/pin/ls"
     url_dict["pin_remove"] = "http://127.0.0.1:5001/api/v0/pin/rm"
     url_dict["run_gc"] = "http://127.0.0.1:5001/api/v0/repo/gc"
-    url_dict["pin_add"] = "http://127.0.0.1:5001/api/v0/pin/add"
+    url_dict["want_list"] = "http://127.0.0.1:5001/api/v0/bitswap/wantlist"
+
     return url_dict
