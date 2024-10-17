@@ -1,4 +1,6 @@
 import json
+import os
+import platform
 import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import Error
@@ -7,6 +9,7 @@ import aiosql
 import requests
 from rich import print
 
+from diyims.database_operations import insert_peer_row, insert_network_row
 from diyims.error_classes import (
     ApplicationNotInstalledError,
     CreateSchemaError,
@@ -15,8 +18,9 @@ from diyims.error_classes import (
 from diyims.header_utils import ipfs_header_create
 from diyims.ipfs_utils import test_ipfs_version
 from diyims.path_utils import get_path_dict
+from diyims.platform_utils import test_os_platform
 from diyims.py_version_dep import get_car_path, get_sql_str
-from diyims.sql_table_dict import get_network_table_dict, get_peer_table_dict
+from diyims.sql_table_dict import refresh_network_table_dict, refresh_peer_table_dict
 from diyims.url_utils import get_url_dict
 
 
@@ -62,7 +66,14 @@ def init():
     conn.close()
     conn = sqlite3.connect(connect_path)
 
-    test_ipfs_version()
+    IPFS_agent = test_ipfs_version()
+    execution_platform = test_os_platform()
+
+    try:
+        python_release = os.environ["OVERRIDE_RELEASE"]
+
+    except KeyError:
+        python_release = platform.release()
 
     """
     Create anchor entry of the linked list.
@@ -75,18 +86,22 @@ def init():
     DTS = str(datetime.now(timezone.utc))
 
     print("This process can take several minutes. Have a cup of coffee.")
+
+    # This is required to get the IPNS_name
     object_CID = "null"
     object_type = "linked_list_header"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
     print(f"First header CID (head of chain) '{header_CID}'")
     print("Published first header")
+    print(f"IPNS_name : '{IPNS_name}'")
 
+    """
     object_CID = IPNS_name
     object_type = "IPNS_name"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
-    """
+
 
     Create the initial peer table entry for this peer.
     """
@@ -97,14 +112,19 @@ def init():
         r.raise_for_status()
         json_dict = json.loads(r.text)
 
-    peer_table_dict = get_peer_table_dict()
-    peer_table_dict["peer_id"] = json_dict["ID"]
+    peer_table_dict = refresh_peer_table_dict()
+
+    peer_table_dict["peer_ID"] = json_dict["ID"]
     peer_table_dict["IPNS_name"] = IPNS_name
-    peer_table_dict["update_dts"] = DTS
+    peer_table_dict["origin_update_DTS"] = DTS
+    peer_table_dict["local_update_DTS"] = DTS
+    peer_table_dict["execution_platform"] = execution_platform
+    peer_table_dict["python_version"] = python_release
+    peer_table_dict["IPFS_agent"] = IPFS_agent
+    peer_table_dict["processing_status"] = "Z"
 
     peer_file = path_dict["peer_file"]
     add_params = {"only-hash": "false", "pin": "true"}
-
     with open(peer_file, "w") as write_file:
         json.dump(peer_table_dict, write_file, indent=4)
 
@@ -118,38 +138,26 @@ def init():
     object_type = "peer_table_entry"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
-    print(f"Second header CID '{header_CID}'")
-    print("Published second header")
+    print(f"Second header for the peer_table CID '{header_CID}'")
 
-    print(f"First network peer entry CID '{object_CID}'")
-    network_table_dict = get_network_table_dict()
+    # print(f"First network peer entry CID '{object_CID}'")
+    network_table_dict = refresh_network_table_dict()
     network_table_dict["network_name"] = import_car()
-    print(network_table_dict["network_name"])
+    network_name = network_table_dict["network_name"]
+    print(f"network_name : '{network_name}'")
 
-    object_CID = network_table_dict["network_name"]
+    object_CID = network_table_dict[
+        "network_name"
+    ]  # NOTE: Replace the need for this transaction by looking in the peer_table
     object_type = "network_name"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
-    print(IPNS_name)
 
-    queries.insert_peer_row(
-        conn,
-        peer_table_dict["version"],
-        peer_table_dict["peer_id"],
-        peer_table_dict["update_seq"],
-        peer_table_dict["IPNS_name"],
-        peer_table_dict["update_dts"],
-        peer_table_dict["platform"],
-        peer_table_dict["python_version"],
-        peer_table_dict["ipfs_agent"],
-    )
+    insert_peer_row(conn, peer_table_dict)
+    queries.commit(conn)
 
+    insert_network_row(conn, network_table_dict)
     queries.commit(conn)
-    queries.insert_network_row(
-        conn,
-        network_table_dict["version"],
-        network_table_dict["network_name"],
-    )
-    queries.commit(conn)
+
     conn.close()
 
 

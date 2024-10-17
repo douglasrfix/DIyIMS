@@ -17,27 +17,3 @@ def get_network_name():
     network_name = query_row["network_name"]
     conn.close()
     return network_name
-
-
-def insert_peer_row(peer_table_dict):
-    path_dict = get_path_dict()
-    sql_str = get_sql_str()
-    queries = aiosql.from_str(sql_str, "sqlite3")
-    connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(connect_path)
-
-    queries.insert_peer_row(
-        conn,
-        peer_table_dict["version"],
-        peer_table_dict["peer_id"],
-        peer_table_dict["update_seq"],
-        peer_table_dict["IPNS_name"],
-        peer_table_dict["update_dts"],
-        peer_table_dict["platform"],
-        peer_table_dict["python_version"],
-        peer_table_dict["ipfs_agent"],
-    )
-    queries.commit(conn)
-    conn.close()
-
-    return

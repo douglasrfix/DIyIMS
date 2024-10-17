@@ -10,27 +10,56 @@ CREATE TABLE "header_table" (
 );
 
 CREATE TABLE "peer_table" (
-	"version"	TEXT,
 	"peer_ID"	TEXT,
-	"update_seq"	INTEGER,
 	"IPNS_name"	TEXT,
-	"update_dts"	TEXT,
-	"platform"	TEXT,
+	"origin_update_DTS"	TEXT,
+	"local_update_DTS" TEXT,
+	"execution_platform"	TEXT,
 	"python_version"	TEXT,
-	"ipfs_agent"	TEXT,
+	"IPFS_agent"	TEXT,
+	"processing_status" TEXT,
+	"agent" TEXT,
+	"version"	TEXT,
 	PRIMARY KEY("peer_ID")
 );
 
+CREATE TABLE "want_list__table" (
+	"peer_ID"	TEXT,
+	"object_CID" TEXT
+);
+
 CREATE TABLE "network_table" (
-	"version" TEXT,
 	"network_name"	TEXT
 );
 
+-- name: migrate_v0_schema#
+
+CREATE TABLE "new_peer_table" (
+
+	"peer_ID"	TEXT,
+	"IPNS_name"	TEXT,
+	"origin_update_DTS"	TEXT,
+	"local_update_DTS" TEXT,
+	"execution_platform"	TEXT,
+	"python_version"	TEXT,
+	"IPFS_agent"	TEXT,
+	"processing_status" TEXT,
+	"agent" TEXT,
+	"version"	TEXT
+	PRIMARY KEY("peer_ID")
+);
+
+CREATE TABLE "want_list__table" (
+	"peer_ID"	TEXT,
+	"object_CID" TEXT
+);
+
+
 -- name: insert_peer_row!
-insert into peer_table (version, peer_ID, update_seq, IPNS_name, update_dts, platform, python_version,
-		ipfs_agent)
-values (:version, :peer_ID, :update_seq, :IPNS_name, :update_dts, :platform, :python_version,
-		:ipfs_agent);
+insert into peer_table (peer_ID, IPNS_name, origin_update_DTS, local_update_DTS, execution_platform, python_version,
+		IPFS_agent, processing_status, agent, version)
+values (:peer_ID, :IPNS_name, :origin_update_DTS, :local_update_DTS, :execution_platform, :python_version,
+		:IPFS_agent, :processing_status, :agent, :version);
 
 -- name: insert_header_row!
 insert into header_table (version, object_CID, object_type, insert_DTS,
@@ -39,8 +68,8 @@ values (:version, :object_CID, :object_type, :insert_DTS,
 	 :prior_header_CID, :header_CID);
 
 -- name: insert_network_row!
-insert into network_table (version, network_name)
-values (:version, :network_name);
+insert into network_table (network_name)
+values (:network_name);
 
 -- name: select_last_header^
 SELECT
@@ -75,7 +104,6 @@ FROM
 
 -- name: select_network_name^
 SELECT
- 	version,
    	network_name
 
 FROM
@@ -85,14 +113,16 @@ FROM
 
 -- name: select_unprocessed_peers
 SELECT
- 	version,
-   	peer_ID,
-   	update_seq,
+	peer_ID,
 	IPNS_name,
-   	update_dts,
-   	platform,
+   	origin_update_DTS,
+	local_update_DTS,
+   	execution_platform,
 	python_version,
-   	ipfs_agent
+   	IPFS_agent,
+	processing_status,
+	agent,
+ 	version
 
 FROM
    peer_table

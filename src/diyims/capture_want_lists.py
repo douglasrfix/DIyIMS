@@ -31,9 +31,9 @@ def get_unprocessed_peers():
     return
 
 
-def get_want_list(peer_id):
+def get_want_list(peer_ID):
     url_dict = get_url_dict()
-    key_arg = {"peer": peer_id}
+    key_arg = {"peer": peer_ID}
     with requests.post(url_dict["want_list"], params=key_arg, stream=True) as r:
         r.raise_for_status()
         for line in r.iter_lines():
@@ -54,7 +54,7 @@ def get_want_list(peer_id):
 
         """
         peer_table_dict = get_peer_table_dict()
-        peer_table_dict["peer_id"] = python_dict["ID"]
+        peer_table_dict["peer_ID"] = python_dict["ID"]
         try:
         insert_peer_row(peer_table_dict)
         count = count + 1

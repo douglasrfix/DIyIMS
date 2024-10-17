@@ -49,10 +49,12 @@
 # [ ]: support posix mount points
 # [ ]: support testing of posix mount points
 # [x]: fix drive letter support
-# [ ]: create want list table
-# [ ]: standardize db name capitalization
+# [x]: create want list table
+# []: standardize db name capitalization
 # [ ]: need a db reset to previous condition function
 # [ ]: rename header to announce
 # [ ]: utility to create ad get non-existent CIDs for negotiation testing both static CIDs and dynamic
-# [ ]: add to the peer table for announcing python version platform and ipfs agent
-# [ ]: add peer status to peer table and delete seq number
+# [x]: add to the peer table for announcing python version platform and ipfs agent
+# [x]: add peer status to peer table and delete seq number
+# [ ]: support in-place db schema changes
+# [x]: add diyims agent to identify who/what created an artifact for the network.

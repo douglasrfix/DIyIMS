@@ -99,7 +99,7 @@ def test_ipfs_version():
         if match_count == 0:
             raise (UnSupportedIPFSVersionError(json_dict["AgentVersion"]))
 
-    return
+    return json_dict["AgentVersion"]
 
 
 def force_purge():

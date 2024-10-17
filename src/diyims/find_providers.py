@@ -21,8 +21,9 @@ from sqlite3 import IntegrityError
 
 import requests
 
-from diyims.general_utils import get_network_name, insert_peer_row
-from diyims.sql_table_dict import get_peer_table_dict
+from diyims.general_utils import get_network_name
+from diyims.database_operations import insert_peer_row
+from diyims.sql_table_dict import refresh_peer_table_dict
 from diyims.url_utils import get_url_dict
 
 
@@ -47,10 +48,11 @@ def get_providers():
                     # print(python_dict["ID"], json_dict["Type"])
                     # provider_dict[python_dict["ID"]] = python_dict["ID"]
 
-                    peer_table_dict = get_peer_table_dict()
+                    peer_table_dict = refresh_peer_table_dict()
                     DTS = str(datetime.now(timezone.utc))
-                    peer_table_dict["update_dts"] = DTS
-                    peer_table_dict["peer_id"] = python_dict["ID"]
+                    peer_table_dict["peer_ID"] = python_dict["ID"]
+                    peer_table_dict["local_update_DTS"] = DTS
+                    peer_table_dict["processing_status"] = "A"
                     try:
                         insert_peer_row(peer_table_dict)
                         count = count + 1

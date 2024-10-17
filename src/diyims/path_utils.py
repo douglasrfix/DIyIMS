@@ -24,7 +24,7 @@ import os
 from pathlib import Path
 
 from diyims.error_classes import ApplicationNotInstalledError
-from diyims.os_platform import test_os_platform
+from diyims.platform_utils import test_os_platform
 
 
 def get_install_template_dict():
