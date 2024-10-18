@@ -1,6 +1,5 @@
 import json
 import os
-import platform
 import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import Error
@@ -9,7 +8,7 @@ import aiosql
 import requests
 from rich import print
 
-from diyims.database_operations import insert_peer_row, insert_network_row
+from diyims.database_operations import insert_network_row, insert_peer_row
 from diyims.error_classes import (
     ApplicationNotInstalledError,
     CreateSchemaError,
@@ -18,7 +17,7 @@ from diyims.error_classes import (
 from diyims.header_utils import ipfs_header_create
 from diyims.ipfs_utils import test_ipfs_version
 from diyims.path_utils import get_path_dict
-from diyims.platform_utils import test_os_platform
+from diyims.platform_utils import get_python_version, test_os_platform
 from diyims.py_version_dep import get_car_path, get_sql_str
 from diyims.sql_table_dict import refresh_network_table_dict, refresh_peer_table_dict
 from diyims.url_utils import get_url_dict
@@ -43,6 +42,8 @@ def create():
     except Error as e:
         conn.close()
         raise (CreateSchemaError(e))
+    conn.close()
+    return
 
 
 def init():
@@ -63,17 +64,17 @@ def init():
         conn.close()
         raise (PreExistingInstallationError(" "))
 
-    conn.close()
-    conn = sqlite3.connect(connect_path)
+    # conn.close()
+    # conn = sqlite3.connect(connect_path)
 
     IPFS_agent = test_ipfs_version()
-    execution_platform = test_os_platform()
+    os_platform = test_os_platform()
 
     try:
-        python_release = os.environ["OVERRIDE_RELEASE"]
+        python_version = os.environ["OVERRIDE_PYTHON_VERSION"]
 
     except KeyError:
-        python_release = platform.release()
+        python_version = get_python_version()
 
     """
     Create anchor entry of the linked list.
@@ -118,8 +119,8 @@ def init():
     peer_table_dict["IPNS_name"] = IPNS_name
     peer_table_dict["origin_update_DTS"] = DTS
     peer_table_dict["local_update_DTS"] = DTS
-    peer_table_dict["execution_platform"] = execution_platform
-    peer_table_dict["python_version"] = python_release
+    peer_table_dict["execution_platform"] = os_platform
+    peer_table_dict["python_version"] = python_version
     peer_table_dict["IPFS_agent"] = IPFS_agent
     peer_table_dict["processing_status"] = "Z"
 
@@ -153,12 +154,13 @@ def init():
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
     insert_peer_row(conn, peer_table_dict)
-    queries.commit(conn)
+    conn.commit()
 
     insert_network_row(conn, network_table_dict)
-    queries.commit(conn)
+    conn.commit()
 
     conn.close()
+    return
 
 
 def import_car():

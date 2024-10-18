@@ -24,7 +24,7 @@ addopts = [
     "-rA",
     "-vv",
     "--capture=tee-sys",
-    "--cov=diyims",
+    # "--cov=diyims",
     "--cov-append",
     "--cov-report=term-missing",
     "--basetemp=C:\\Users\\dougl\\diyims\\tmp",

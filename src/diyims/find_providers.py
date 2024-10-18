@@ -16,26 +16,36 @@ removed and a garbage collection has run.
 
 """
 import json
+import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import IntegrityError
 
 import requests
+from rich import print
 
-from diyims.general_utils import get_network_name
 from diyims.database_operations import insert_peer_row
+from diyims.general_utils import get_network_name
+from diyims.path_utils import get_path_dict
 from diyims.sql_table_dict import refresh_peer_table_dict
 from diyims.url_utils import get_url_dict
 
 
 def get_providers():
     url_dict = get_url_dict()
+    path_dict = get_path_dict()
+    # print(path_dict)
     network_name = get_network_name()
+    # sql_str = get_sql_str()
+    # queries = aiosql.from_str(sql_str, "sqlite3")
+    connect_path = path_dict["db_file"]
+    conn = sqlite3.connect(connect_path)
     key_arg = {"arg": network_name}
-    # provider_dict = {}
-
-    with requests.post(url_dict["find_providers"], params=key_arg, stream=True) as r:
+    with requests.post(
+        url_dict["find_providers"], params=key_arg, stream=False
+    ) as r:  # NOTE: is this the proper way of handling
         r.raise_for_status()
-        count = 0
+        found = 0
+        added = 0
         for line in r.iter_lines():
             if line:
                 decoded_line = line.decode("utf-8")
@@ -54,9 +64,13 @@ def get_providers():
                     peer_table_dict["local_update_DTS"] = DTS
                     peer_table_dict["processing_status"] = "A"
                     try:
-                        insert_peer_row(peer_table_dict)
-                        count = count + 1
+                        insert_peer_row(conn, peer_table_dict)
+                        conn.commit()
+                        added = added + 1
                     except IntegrityError:
+                        # print("debug")
                         pass
-        print(count)
-        # print(provider_dict)
+                    found = found + 1
+    conn.close()
+    print(f"{found} providers found and {added} providers added")
+    return

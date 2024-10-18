@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 
 from diyims.error_classes import UnSupportedPlatformError
@@ -27,7 +28,13 @@ def test_os_platform():
         raise (UnSupportedPlatformError(sys_platform))
     elif sys_platform.startswith("win32"):
         """win32 is valid for 32 and 64 bit systems"""
-        return sys_platform
+        try:
+            sys_release = os.environ["OVERRIDE_RELEASE"]
+        except KeyError:
+            sys_release = platform.release()
+
+        os_platform = sys_platform + ":" + sys_release
+        return os_platform
     elif sys_platform.startswith("cygwin"):
         print("CYGWIN(Unix like environment for Windows) found and not supported")
         raise (UnSupportedPlatformError(sys_platform))
@@ -37,3 +44,22 @@ def test_os_platform():
     else:
         print("OS not identified and thus not supported")
         raise (UnSupportedPlatformError(sys_platform))
+
+
+def get_python_version():
+    """
+    major, minor, micro, releaselevel, and serial. All values except releaselevel are integers;
+    the release level is 'alpha', 'beta', 'candidate', or 'final'.
+    The version_info value corresponding to the Python version 2.0 is (2, 0, 0, 'final', 0).
+    The components can also be accessed by name, so sys.version_info[0] is equivalent to sys.version_info.major and so on.
+    """
+
+    python_version = (
+        str(sys.version_info.major)
+        + "."
+        + str(sys.version_info.minor)
+        + "."
+        + str(sys.version_info.micro)
+    )
+
+    return python_version

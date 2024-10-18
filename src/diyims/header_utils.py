@@ -80,7 +80,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
         header_dict["prior_header_CID"],
         header_CID,
     )
-    queries.commit(conn)
+    conn.commit()
 
     conn.close()
 

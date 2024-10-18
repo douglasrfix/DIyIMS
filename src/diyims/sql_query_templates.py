@@ -17,6 +17,12 @@ queries.insert_network_row(
     network_table_dict["network_name"],
 )
 
+queries.insert_want_list_row(
+    conn,
+    want_list_table_dict["peer_ID"],
+    want_list_table_dict["object_CID"],
+)
+
 queries.insert_header_row(
     conn,
     header_table_dict["version"],

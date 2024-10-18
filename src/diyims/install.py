@@ -1,7 +1,6 @@
 import configparser
 import json
 import os
-import platform
 from pathlib import Path
 
 import requests
@@ -13,8 +12,8 @@ from diyims.error_classes import (
     UnSupportedPlatformError,
     UnTestedPlatformError,
 )
-from diyims.platform_utils import test_os_platform
 from diyims.path_utils import get_install_template_dict
+from diyims.platform_utils import test_os_platform
 from diyims.url_utils import get_url_dict
 
 
@@ -26,7 +25,7 @@ def install_app(drive_letter, force_install):
         raise
 
     override_drive = "False"
-    if drive_letter != "Default" and os_platform == "win32":
+    if drive_letter != "Default" and os_platform.startswith("win32"):
         if Path(drive_letter + "/").exists() is not True:
             try:
                 override_drive = os.environ["OVERRIDE_DRIVE"]
@@ -34,14 +33,12 @@ def install_app(drive_letter, force_install):
             except KeyError:
                 raise (InvalidDriveLetterError(drive_letter))
 
-    try:
-        python_release = os.environ["OVERRIDE_RELEASE"]
-
-    except KeyError:
-        python_release = platform.release()
-
-    if int(python_release) >= 10 and os_platform == "win32" and force_install is False:
-        raise UnTestedPlatformError(platform.system(), platform.release())
+    if (
+        "win32:10" >= os_platform
+        and os_platform.startswith("win32")
+        and force_install is False
+    ):
+        raise UnTestedPlatformError(os_platform)
 
     install_template_dict = get_install_template_dict()
 

@@ -31,11 +31,11 @@
 # [ ]: create ipfs_version_dep place holder
 # [ ]: create platform_dep place holder
 # [ ]: refactor in line dictionary specification to include from a get_????_dict where ??? is the table name
-# [x]: evaluate pin roots value true false for real effect.  It doesn't seem to pin if true and it false to produce a response if #      its false. using ipfs help for each command that is used to detect when something changed
+# [x]: evaluate pin roots value true false for real effect.  It doesn't seem to pin if true and it false to produce a response if
+#      its false. using ipfs help for each command that is used to detect when something changed
 # [x]: split the issue into multiple steps to facilitate testing on multiple platforms to give me some peers to deal with.
 # [x]: need a python version override to remove the --force for this test
-# [x]: untested platform logic has moved and no longer supplies path dict in error message
-    # remove from db_install
+# [x]: untested platform logic has moved and no longer supplies path dict in error message remove from db_install
 # [x]: remove untested error from db_init
 # [x]: remove untested platform from header_ops
 # [x]: need test for each value in unSupported list
@@ -50,11 +50,13 @@
 # [ ]: support testing of posix mount points
 # [x]: fix drive letter support
 # [x]: create want list table
-# []: standardize db name capitalization
+# [x]: standardize db name capitalization
 # [ ]: need a db reset to previous condition function
 # [ ]: rename header to announce
-# [ ]: utility to create ad get non-existent CIDs for negotiation testing both static CIDs and dynamic
+# [ ]: CLI utility to create and get non-existent CIDs for negotiation testing both static CIDs and dynamic
 # [x]: add to the peer table for announcing python version platform and ipfs agent
 # [x]: add peer status to peer table and delete seq number
 # [ ]: support in-place db schema changes
 # [x]: add diyims agent to identify who/what created an artifact for the network.
+# [x]: Set PYTHONDEVMODE to 1 for running tests
+# [x]: add table value for platform release level eg. window 10

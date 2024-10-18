@@ -31,3 +31,16 @@ def insert_network_row(conn, network_table_dict):
         conn,
         network_table_dict["network_name"],
     )
+    return
+
+
+def insert_want_list_row(conn, want_list_table_dict):
+    sql_str = get_sql_str()
+    queries = aiosql.from_str(sql_str, "sqlite3")
+
+    queries.insert_want_list_row(
+        conn,
+        want_list_table_dict["peer_ID"],
+        want_list_table_dict["object_CID"],
+    )
+    return

@@ -23,7 +23,7 @@ CREATE TABLE "peer_table" (
 	PRIMARY KEY("peer_ID")
 );
 
-CREATE TABLE "want_list__table" (
+CREATE TABLE "want_list_table" (
 	"peer_ID"	TEXT,
 	"object_CID" TEXT
 );
@@ -31,29 +31,6 @@ CREATE TABLE "want_list__table" (
 CREATE TABLE "network_table" (
 	"network_name"	TEXT
 );
-
--- name: migrate_v0_schema#
-
-CREATE TABLE "new_peer_table" (
-
-	"peer_ID"	TEXT,
-	"IPNS_name"	TEXT,
-	"origin_update_DTS"	TEXT,
-	"local_update_DTS" TEXT,
-	"execution_platform"	TEXT,
-	"python_version"	TEXT,
-	"IPFS_agent"	TEXT,
-	"processing_status" TEXT,
-	"agent" TEXT,
-	"version"	TEXT
-	PRIMARY KEY("peer_ID")
-);
-
-CREATE TABLE "want_list__table" (
-	"peer_ID"	TEXT,
-	"object_CID" TEXT
-);
-
 
 -- name: insert_peer_row!
 insert into peer_table (peer_ID, IPNS_name, origin_update_DTS, local_update_DTS, execution_platform, python_version,
@@ -66,6 +43,10 @@ insert into header_table (version, object_CID, object_type, insert_DTS,
 	 prior_header_CID, header_CID)
 values (:version, :object_CID, :object_type, :insert_DTS,
 	 :prior_header_CID, :header_CID);
+
+-- name: insert_want_list_row!
+insert into want_list_table (peer_ID, object_CID)
+values (:peer_ID, :object_CID);
 
 -- name: insert_network_row!
 insert into network_table (network_name)
@@ -126,9 +107,3 @@ SELECT
 
 FROM
    peer_table
-
-;
-
-
--- name: commit!
-commit;

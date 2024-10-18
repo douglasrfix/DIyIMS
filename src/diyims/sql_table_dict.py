@@ -5,6 +5,13 @@ def refresh_network_table_dict():
     return network_table_dict
 
 
+def refresh_want_list_table_dict():
+    want_list_table_dict = {}
+    want_list_table_dict["peer_ID"] = "null"
+    want_list_table_dict["object_CID"] = "null"
+    return want_list_table_dict
+
+
 def refresh_peer_table_dict():
     peer_table_dict = {}
     peer_table_dict["peer_ID"] = "null"
