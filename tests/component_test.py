@@ -24,3 +24,39 @@ def test_capture_want_lists():
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
+
+
+@pytest.mark.component
+def test_want_item_wait():
+    """testing find_providers with native windows install"""
+    command_string = "wait-on-want-item"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+@pytest.mark.component
+def test_multi():
+    """testing find_providers with native windows install"""
+    command_string = "multi-test"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+@pytest.mark.component
+def test_want_list_stats():
+    """testing find_providers with native windows install"""
+    command_string = "want-list-stats"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
+@pytest.mark.component
+def test_want_list_swarm():
+    """testing find_providers with native windows install"""
+    command_string = "want-list-swarm"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0

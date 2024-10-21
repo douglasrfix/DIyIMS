@@ -1,26 +1,29 @@
 import json
 import os
 import sqlite3
-from datetime import datetime, timezone
 from sqlite3 import Error
 
 import aiosql
 import requests
 from rich import print
 
-from diyims.database_operations import insert_network_row, insert_peer_row
+from diyims.database_utils import (
+    insert_network_row,
+    insert_peer_row,
+    refresh_network_table_dict,
+    refresh_peer_table_dict,
+)
 from diyims.error_classes import (
     ApplicationNotInstalledError,
     CreateSchemaError,
     PreExistingInstallationError,
 )
+from diyims.general_utils import get_DTS
 from diyims.header_utils import ipfs_header_create
-from diyims.ipfs_utils import test_ipfs_version
+from diyims.ipfs_utils import get_url_dict, test_ipfs_version
 from diyims.path_utils import get_path_dict
 from diyims.platform_utils import get_python_version, test_os_platform
 from diyims.py_version_dep import get_car_path, get_sql_str
-from diyims.sql_table_dict import refresh_network_table_dict, refresh_peer_table_dict
-from diyims.url_utils import get_url_dict
 
 
 def create():
@@ -84,7 +87,7 @@ def init():
     """
     DTS is the same for all artifacts of this transaction
     """
-    DTS = str(datetime.now(timezone.utc))
+    DTS = get_DTS()
 
     print("This process can take several minutes. Have a cup of coffee.")
 
@@ -107,7 +110,7 @@ def init():
     Create the initial peer table entry for this peer.
     """
 
-    DTS = str(datetime.now(timezone.utc))
+    DTS = get_DTS()
 
     with requests.post(url_dict["id"], stream=False) as r:
         r.raise_for_status()
@@ -122,7 +125,7 @@ def init():
     peer_table_dict["execution_platform"] = os_platform
     peer_table_dict["python_version"] = python_version
     peer_table_dict["IPFS_agent"] = IPFS_agent
-    peer_table_dict["processing_status"] = "Z"
+    peer_table_dict["processing_status"] = "LP"  # local peer
 
     peer_file = path_dict["peer_file"]
     add_params = {"only-hash": "false", "pin": "true"}
@@ -136,7 +139,9 @@ def init():
         json_dict = json.loads(r.text)
 
     object_CID = json_dict["Hash"]
-    object_type = "peer_table_entry"
+    object_type = (
+        "peer_table_entry"  # NOTE: distinguish between local and remote entries
+    )
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
     print(f"Second header for the peer_table CID '{header_CID}'")

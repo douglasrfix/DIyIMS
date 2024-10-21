@@ -23,11 +23,10 @@ from sqlite3 import IntegrityError
 import requests
 from rich import print
 
-from diyims.database_operations import insert_peer_row
+from diyims.database_utils import insert_peer_row, refresh_peer_table_dict
 from diyims.general_utils import get_network_name
+from diyims.ipfs_utils import get_url_dict
 from diyims.path_utils import get_path_dict
-from diyims.sql_table_dict import refresh_peer_table_dict
-from diyims.url_utils import get_url_dict
 
 
 def get_providers():
@@ -40,9 +39,7 @@ def get_providers():
     connect_path = path_dict["db_file"]
     conn = sqlite3.connect(connect_path)
     key_arg = {"arg": network_name}
-    with requests.post(
-        url_dict["find_providers"], params=key_arg, stream=False
-    ) as r:  # NOTE: is this the proper way of handling
+    with requests.post(url_dict["find_providers"], params=key_arg, stream=True) as r:
         r.raise_for_status()
         found = 0
         added = 0
@@ -51,7 +48,9 @@ def get_providers():
                 decoded_line = line.decode("utf-8")
                 json_dict = json.loads(decoded_line)
                 if json_dict["Type"] == 4:
-                    json_string = str(json_dict["Responses"])
+                    json_string = str(
+                        json_dict["Responses"]
+                    )  # NOTE: dictionary of lists?
                     json_string_len = len(json_string)
                     python_string = json_string[1 : json_string_len - 1]
                     python_dict = json.loads(python_string.replace("'", '"'))
@@ -62,7 +61,7 @@ def get_providers():
                     DTS = str(datetime.now(timezone.utc))
                     peer_table_dict["peer_ID"] = python_dict["ID"]
                     peer_table_dict["local_update_DTS"] = DTS
-                    peer_table_dict["processing_status"] = "A"
+                    peer_table_dict["processing_status"] = "NP"  # network providers
                     try:
                         insert_peer_row(conn, peer_table_dict)
                         conn.commit()

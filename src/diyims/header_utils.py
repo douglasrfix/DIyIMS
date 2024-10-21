@@ -6,7 +6,7 @@ import requests
 
 from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.url_utils import get_url_dict
+from diyims.ipfs_utils import get_url_dict
 
 
 def ipfs_header_create(DTS, object_CID, object_type):
@@ -101,3 +101,14 @@ def test_header_by_IPNS_name(IPNS_name):
     print(r)
     print(r.text)
     return
+
+
+def refresh_header_dict():
+    header_dict = {}
+    header_dict["version"] = "0"
+    header_dict["object_CID"] = "null"
+    header_dict["object_type"] = "null"
+    header_dict["insert_DTS"] = "null"
+    header_dict["prior_header_CID"] = "null"
+
+    return header_dict

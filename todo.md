@@ -60,3 +60,5 @@
 # [x]: add diyims agent to identify who/what created an artifact for the network.
 # [x]: Set PYTHONDEVMODE to 1 for running tests
 # [x]: add table value for platform release level eg. window 10
+# [ ]: add peer type
+# [x]: combine sql_table_dict with db utils rename db_operations

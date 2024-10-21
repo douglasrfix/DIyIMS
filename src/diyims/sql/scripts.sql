@@ -25,7 +25,9 @@ CREATE TABLE "peer_table" (
 
 CREATE TABLE "want_list_table" (
 	"peer_ID"	TEXT,
-	"object_CID" TEXT
+	"object_CID" TEXT,
+	"insert_DTS"	TEXT,
+	"source_peer_type"	TEXT
 );
 
 CREATE TABLE "network_table" (
@@ -45,8 +47,8 @@ values (:version, :object_CID, :object_type, :insert_DTS,
 	 :prior_header_CID, :header_CID);
 
 -- name: insert_want_list_row!
-insert into want_list_table (peer_ID, object_CID)
-values (:peer_ID, :object_CID);
+insert into want_list_table (peer_ID, object_CID, insert_DTS, source_peer_type)
+values (:peer_ID, :object_CID, :insert_DTS, :source_peer_type);
 
 -- name: insert_network_row!
 insert into network_table (network_name)
@@ -63,6 +65,25 @@ SELECT
 
 FROM
    header_table
+
+ORDER BY
+
+	insert_DTS DESC
+;
+
+-- name: select_last_peer_table_entry_header^
+SELECT
+ 	version,
+   	object_CID,
+   	object_type,
+   	insert_DTS,
+   	prior_header_CID,
+   	header_CID
+
+FROM
+   header_table
+
+WHERE object_type = "peer_table_entry"
 
 ORDER BY
 
@@ -92,7 +113,7 @@ FROM
 
 ;
 
--- name: select_unprocessed_peers
+-- name: select_remote_peers
 SELECT
 	peer_ID,
 	IPNS_name,
@@ -107,3 +128,5 @@ SELECT
 
 FROM
    peer_table
+
+WHERE processing_status <> "LP"

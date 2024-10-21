@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import datetime, timezone
 
 import aiosql
 
@@ -17,3 +18,9 @@ def get_network_name():
     network_name = query_row["network_name"]
     conn.close()
     return network_name
+
+
+def get_DTS():
+    DTS = str(datetime.now(timezone.utc))
+
+    return DTS

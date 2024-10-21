@@ -8,7 +8,27 @@ import requests
 from diyims.error_classes import UnSupportedIPFSVersionError
 from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.url_utils import get_url_dict
+
+
+def get_url_dict():
+    url_dict = {}
+    url_dict["add"] = "http://127.0.0.1:5001/api/v0/add"
+    url_dict["get"] = "http://127.0.0.1:5001/api/v0/get"
+    url_dict["id"] = "http://127.0.0.1:5001/api/v0/id"
+    url_dict["dag_import"] = "http://127.0.0.1:5001/api/v0/dag/import"
+    url_dict["name_publish"] = "http://127.0.0.1:5001/api/v0/name/publish"
+    url_dict["find_providers"] = "http://127.0.0.1:5001/api/v0/routing/findprovs"
+    url_dict["pin_list"] = "http://127.0.0.1:5001/api/v0/pin/ls"
+    url_dict["pin_add"] = "http://127.0.0.1:5001/api/v0/pin/add"
+    url_dict["pin_remove"] = "http://127.0.0.1:5001/api/v0/pin/rm"
+    url_dict["run_gc"] = "http://127.0.0.1:5001/api/v0/repo/gc"
+    url_dict["want_list"] = "http://127.0.0.1:5001/api/v0/bitswap/wantlist"
+    url_dict[
+        "bitswap_stat"
+    ] = "http://127.0.0.1:5001/api/v0/bitswap/stat"  # NOTE: make the key the name of the command
+    url_dict["swarm_peers"] = "http://127.0.0.1:5001/api/v0/swarm/peers"
+
+    return url_dict
 
 
 def purge():

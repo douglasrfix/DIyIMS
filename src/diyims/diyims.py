@@ -13,8 +13,11 @@ from diyims import install_cli
 
 # import diyims
 from diyims.find_providers import get_providers
+from diyims.testing_utils import create_want_item
 from diyims.ipfs_utils import force_purge, purge
-from diyims.capture_want_lists import get_unprocessed_peers
+from diyims.capture_want_lists import get_remote_peers
+from diyims.worker_multi import main
+from diyims.research_utils import get_bitswap_stat, get_swarm_peers
 
 app = typer.Typer(
     no_args_is_help=True, help="Base command for the DIY Independent Media Services."
@@ -62,4 +65,44 @@ def capture_want_lists():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_unprocessed_peers()
+    get_remote_peers()
+
+
+@app.command()
+def wait_on_want_item():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    create_want_item()
+
+
+@app.command()
+def multi_test():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    main()
+
+
+@app.command()
+def want_list_stats():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    get_bitswap_stat()
+
+
+@app.command()
+def want_list_swarm():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    get_swarm_peers()
