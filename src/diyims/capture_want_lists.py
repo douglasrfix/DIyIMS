@@ -33,7 +33,7 @@ def get_remote_peers(ten_second_intervals):
         print(
             f"{peers_processed} peers processed with {total_CIDs_wanted} total CIDs found at {DTS}"
         )
-        sleep(10)  # sample frequency
+        sleep(5)  # sample frequency
 
     return
 
