@@ -12,9 +12,9 @@ from diyims.error_classes import (
     UnSupportedPlatformError,
     UnTestedPlatformError,
 )
+from diyims.ipfs_utils import get_url_dict
 from diyims.path_utils import get_install_template_dict
 from diyims.platform_utils import test_os_platform
-from diyims.ipfs_utils import get_url_dict
 
 
 def install_app(drive_letter, force_install):

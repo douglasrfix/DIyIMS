@@ -6,13 +6,13 @@ from typing_extensions import Annotated
 
 from diyims.database_install import create, init
 from diyims.error_classes import (
+    ApplicationNotInstalledError,
     CreateSchemaError,
     InvalidDriveLetterError,
     PreExistingInstallationError,
     UnSupportedIPFSVersionError,
     UnSupportedPlatformError,
     UnTestedPlatformError,
-    ApplicationNotInstalledError,
 )
 from diyims.install import install_app
 

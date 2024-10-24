@@ -1,23 +1,25 @@
-"""  This is the command line interface driver.
+"""This is the command line interface driver.
 
-     It provides CLI access to each of the applications functions
+It provides CLI access to each of the applications functions
 
-     It is part of an installable package so does not
-     need the if __name__ == "__main__":.
+It is part of an installable package so does not
+need the if __name__ == "__main__":.
 
 """
 
 import typer
+from typing_extensions import Annotated
+from typing import Optional
 
 from diyims import install_cli
+from diyims.beacon_utils import create_beacon_CID
+from diyims.capture_want_lists import get_remote_peers
 
 # import diyims
 from diyims.find_providers import get_providers
-from diyims.testing_utils import create_want_item
 from diyims.ipfs_utils import force_purge, purge
-from diyims.capture_want_lists import get_remote_peers
-from diyims.worker_multi import main
 from diyims.research_utils import get_bitswap_stat, get_swarm_peers
+from diyims.worker_multi import main
 
 app = typer.Typer(
     no_args_is_help=True, help="Base command for the DIY Independent Media Services."
@@ -59,33 +61,51 @@ def find_providers():
 
 
 @app.command()
-def capture_want_lists():
+def capture_want_lists(
+    ten_second_intervals: Annotated[
+        Optional[int],
+        typer.Option(
+            help="The drive letter to use if not the default eg 'C:', note the colon.",
+            show_default=True,
+            rich_help_panel="Install Options",
+        ),
+    ] = 60,
+):
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_remote_peers()
+    get_remote_peers(ten_second_intervals)
 
 
 @app.command()
-def wait_on_want_item():
+def beacon_CID():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    create_want_item()
+    create_beacon_CID()
 
 
 @app.command()
-def multi_test():
+def multi_test(
+    five_minute_intervals: Annotated[
+        Optional[int],
+        typer.Option(
+            help="The drive letter to use if not the default eg 'C:', note the colon.",
+            show_default=True,
+            rich_help_panel="Install Options",
+        ),
+    ] = 6,
+):
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    main()
+    main(five_minute_intervals)
 
 
 @app.command()

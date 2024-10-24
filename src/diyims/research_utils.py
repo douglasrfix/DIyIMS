@@ -10,28 +10,29 @@ The routing system has some inertia and retains the node as a provider after the
 removed and a garbage collection has run.
 
 """
+
 import json
 import sqlite3
 from datetime import datetime, timezone
 from sqlite3 import IntegrityError
 
 import requests
-from rich import print
 
+# from rich import print
 from diyims.database_utils import insert_peer_row, refresh_peer_table_dict
-from diyims.path_utils import get_path_dict
 from diyims.ipfs_utils import get_url_dict
+from diyims.path_utils import get_path_dict
 
 # from time import sleep
 
 
 def get_bitswap_stat():
     for _ in range(1):
-        get_bitswap_stats_peers()
-        get_swarm_peers()
+        added_stats = get_bitswap_stats_peers()
+        added_swarm = get_swarm_peers()
         # sleep(2)
 
-    return
+    return added_stats + added_swarm
 
 
 def get_bitswap_stats_peers():
@@ -63,9 +64,9 @@ def get_bitswap_stats_peers():
                 pass
             found = found + 1
     conn.close()
-    print(f"{found} peers found and {added} added")
+    # print(f"{found} peers found and {added} added")
 
-    return
+    return added
 
 
 def get_swarm_peers():
@@ -94,6 +95,6 @@ def get_swarm_peers():
                 pass
             found = found + 1
     conn.close()
-    print(f"{found} peers found and {added} added")
+    # print(f"{found} peers found and {added} added")
 
-    return
+    return added

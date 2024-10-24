@@ -15,6 +15,7 @@ The routing system has some inertia and retains the node as a provider after the
 removed and a garbage collection has run.
 
 """
+
 import json
 import sqlite3
 from datetime import datetime, timezone

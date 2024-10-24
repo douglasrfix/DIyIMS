@@ -1,8 +1,7 @@
-from time import sleep
+from diyims.beacon_utils import flash_beacon
 
 
-def do_work():
-    # print(x)
-    # result = 1
-    sleep(15)
+def do_work(beacon_CID):
+    flash_beacon(beacon_CID)
+
     return  # result

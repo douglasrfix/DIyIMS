@@ -18,19 +18,28 @@ from diyims.general_utils import get_DTS
 from diyims.ipfs_utils import get_url_dict
 from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.research_utils import get_bitswap_stat
+
+# from diyims.research_utils import get_bitswap_stat
 
 
-def get_remote_peers():
-    for _ in range(1000):
-        get_remote_peer()
-        sleep(10)
+def get_remote_peers(ten_second_intervals):
+    total_peers = 0
+    total_CIDs = 0
+    for _ in range(ten_second_intervals):
+        peers_processed, total_CIDs_wanted = get_remote_peer()
+        DTS = get_DTS()
+        total_peers = total_peers + peers_processed
+        total_CIDs = total_CIDs + total_CIDs_wanted
+        print(
+            f"{peers_processed} peers processed with {total_CIDs_wanted} total CIDs found at {DTS}"
+        )
+        sleep(10)  # sample frequency
 
     return
 
 
 def get_remote_peer():
-    get_bitswap_stat()
+    # get_bitswap_stat()
     path_dict = get_path_dict()
     sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
@@ -49,10 +58,10 @@ def get_remote_peer():
                 peers_processed += 1
                 total_CIDs_wanted = total_CIDs_wanted + CIDs_wanted
     conn.close()
-    print(
-        f"{peers_processed} peers processed with {total_CIDs_wanted} total CIDs found"
-    )
-    return
+    # print(
+    #    f"{peers_processed} peers processed with {total_CIDs_wanted} total CIDs found"
+    # )
+    return peers_processed, total_CIDs_wanted
 
 
 def get_want_list(conn, peer_table_dict):
@@ -86,4 +95,4 @@ def get_want_list(conn, peer_table_dict):
                 conn.commit()
                 CID_count += 1
 
-        return CID_count
+    return CID_count

@@ -129,4 +129,4 @@ SELECT
 FROM
    peer_table
 
-WHERE processing_status <> "LP"
+WHERE processing_status = "LP"
