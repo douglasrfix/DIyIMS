@@ -9,9 +9,15 @@ from datetime import datetime
 def main(five_minute_intervals):
     freeze_support()
     set_start_method("spawn")
-    target_date_time = relativedelta(months=+1)
-    current_date_time = datetime.now()
-    while target_date_time > current_date_time:
+    current_DT = datetime.now()
+    delta = relativedelta(months=+1)
+    target_DT = current_DT + delta
+    # print(target_DT)
+    current_DT = datetime.now()
+    # print(current_DT)
+    # target_delta = relativedelta(target_DT, current_DT)
+    # print(target_delta)
+    while target_DT > current_DT:
         beacon_CID, satisfy_CID = create_beacon_CID()
 
         for _ in range(4):  # "0000" 80
@@ -43,5 +49,5 @@ def main(five_minute_intervals):
             process.start()
             process.join(timeout=20)
             satisfy_beacon(satisfy_CID)
-
+        current_DT = datetime.now()
     return
