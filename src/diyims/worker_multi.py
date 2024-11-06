@@ -22,19 +22,21 @@ def main(minutes_to_run, long_period_seconds, short_period_seconds, number_of_pe
     delta = relativedelta(minutes=+int(beacon_dict["minutes_to_run"]))
     target_DT = current_DT + delta
     current_DT = datetime.now()
-    while target_DT > current_DT:
-        beacon_CID, want_item_file = create_beacon_CID()
 
+    while target_DT > current_DT:
         for _ in range(int(beacon_dict["number_of_periods"])):
+            beacon_CID, want_item_file = create_beacon_CID()
             process = Process(target=run_worker, args=(beacon_CID,))
             process.start()
             process.join(timeout=int(beacon_dict["short_period_seconds"]))
             satisfy_beacon(want_item_file)
+
         for _ in range(int(beacon_dict["number_of_periods"])):
             beacon_CID, want_item_file = create_beacon_CID()
             process = Process(target=run_worker, args=(beacon_CID,))
             process.start()
             process.join(timeout=int(beacon_dict["long_period_seconds"]))
             satisfy_beacon(want_item_file)
+
         current_DT = datetime.now()
     return
