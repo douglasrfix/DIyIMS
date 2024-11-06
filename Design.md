@@ -52,4 +52,6 @@ rpc-2.0
     - 0 (0.0.0a0)
         Establish and test development environment
         Create and test minimal CLI application that exercises primary functional components for a single python environment
-        Verify behavior after installing the application through normal means on a different platform with same architecture.
+        Verify behavior after installing the application through normal means on a different platform with same architecture
+
+        python 3.9 min due to debian distribution limitations

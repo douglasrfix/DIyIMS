@@ -1,53 +1,40 @@
 from multiprocessing import Process, freeze_support, set_start_method
 
-from diyims.beacon_utils import create_beacon_CID, satisfy_beacon
+from diyims.beacon_utils import create_beacon_CID, satisfy_beacon, get_beacon_dict
 from diyims.worker_runner import run_worker
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
 
-def main(five_minute_intervals):
+def main(minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods):
     freeze_support()
     set_start_method("spawn")
+    beacon_dict = get_beacon_dict()
+    if minutes_to_run != "Default":
+        beacon_dict["minutes_to_run"] = minutes_to_run
+    if long_period_seconds != "Default":
+        beacon_dict["long_period_seconds"] = long_period_seconds
+    if short_period_seconds != "Default":
+        beacon_dict["short_period_seconds"] = short_period_seconds
+    if number_of_periods != "Default":
+        beacon_dict["number_of_periods"] = number_of_periods
     current_DT = datetime.now()
-    delta = relativedelta(months=+1)
+    delta = relativedelta(minutes=+int(beacon_dict["minutes_to_run"]))
     target_DT = current_DT + delta
-    # print(target_DT)
     current_DT = datetime.now()
-    # print(current_DT)
-    # target_delta = relativedelta(target_DT, current_DT)
-    # print(target_delta)
     while target_DT > current_DT:
-        beacon_CID, satisfy_CID = create_beacon_CID()
+        beacon_CID, want_item_file = create_beacon_CID()
 
-        for _ in range(4):  # "0000" 80
+        for _ in range(int(beacon_dict["number_of_periods"])):
             process = Process(target=run_worker, args=(beacon_CID,))
             process.start()
-            process.join(timeout=20)
-            satisfy_beacon(satisfy_CID)
-        for _ in range(4):  # "1" 160 240
-            beacon_CID, satisfy_CID = create_beacon_CID()
+            process.join(timeout=int(beacon_dict["short_period_seconds"]))
+            satisfy_beacon(want_item_file)
+        for _ in range(int(beacon_dict["number_of_periods"])):
+            beacon_CID, want_item_file = create_beacon_CID()
             process = Process(target=run_worker, args=(beacon_CID,))
             process.start()
-            process.join(timeout=40)
-            satisfy_beacon(satisfy_CID)
-        for _ in range(0):  # "0" 210
-            beacon_CID, satisfy_CID = create_beacon_CID()
-            process = Process(target=run_worker, args=(beacon_CID,))
-            process.start()
-            process.join(timeout=20)
-            satisfy_beacon(satisfy_CID)
-        for _ in range(0):  # "11" 220
-            beacon_CID, satisfy_CID = create_beacon_CID()
-            process = Process(target=run_worker, args=(beacon_CID,))
-            process.start()
-            process.join(timeout=40)
-            satisfy_beacon(satisfy_CID)
-        for _ in range(0):  # "0000" 300
-            beacon_CID, satisfy_CID = create_beacon_CID()
-            process = Process(target=run_worker, args=(beacon_CID,))
-            process.start()
-            process.join(timeout=20)
-            satisfy_beacon(satisfy_CID)
+            process.join(timeout=int(beacon_dict["long_period_seconds"]))
+            satisfy_beacon(want_item_file)
         current_DT = datetime.now()
     return

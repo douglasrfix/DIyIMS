@@ -62,3 +62,9 @@
 # [x]: add table value for platform release level eg. window 10
 # [ ]: add peer type
 # [x]: combine sql_table_dict with db utils rename db_operations
+# [x]: apt requires support is > 9.0
+# [X]: create config entry for want item.json
+# [x]: make unique file name
+# NOTE: this will require a purge function
+# [x]: create config entry for want item
+# [x]: for beacon timings

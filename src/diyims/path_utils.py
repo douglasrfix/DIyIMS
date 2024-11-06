@@ -62,6 +62,8 @@ def get_path_dict():
     path_dict["header_file"] = Path(parser["Files"]["header_file"])
     path_dict["peer_path"] = Path(parser["Paths"]["peer_path"])
     path_dict["peer_file"] = Path(parser["Files"]["peer_file"])
+    path_dict["want_item_path"] = Path(parser["Paths"]["want_item_path"])
+    path_dict["want_item_file"] = Path(parser["Files"]["want_item_file"])
 
     return path_dict
 
@@ -84,6 +86,7 @@ def get_linux_template_dict():
     template_path_dict["log_path"] = xdg_state_home
     template_path_dict["header_path"] = xdg_cache_home
     template_path_dict["peer_path"] = xdg_cache_home
+    template_path_dict["want_item_path"] = xdg_cache_home
 
     return template_path_dict
 
@@ -106,5 +109,16 @@ def get_win32_template_dict():
     template_path_dict["log_path"] = xdg_state_home
     template_path_dict["header_path"] = xdg_cache_home
     template_path_dict["peer_path"] = xdg_cache_home
+    template_path_dict["want_item_path"] = xdg_cache_home
 
     return template_path_dict
+
+
+def get_unique_item_file(want_item_path, proto_item_file):
+    proto_item_pattern = proto_item_file.stem + "{:05d}" + proto_item_file.suffix
+    counter = 0
+    while True:
+        counter += 1
+        file_path = Path(want_item_path).joinpath(proto_item_pattern.format(counter))
+        if not file_path.exists():
+            return file_path

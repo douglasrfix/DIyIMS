@@ -53,6 +53,7 @@ def install_app(drive_letter, force_install):
     log_path = install_template_dict["log_path"]
     header_path = install_template_dict["header_path"]
     peer_path = install_template_dict["peer_path"]
+    want_item_path = install_template_dict["want_list_path"]
 
     config_file = Path(config_path).joinpath("diyims.ini")
     if config_file.exists():
@@ -65,10 +66,12 @@ def install_app(drive_letter, force_install):
     log_path.mkdir(mode=755, parents=True, exist_ok=True)
     header_path.mkdir(mode=755, parents=True, exist_ok=True)
     peer_path.mkdir(mode=755, parents=True, exist_ok=True)
+    want_item_path.mkdir(mode=755, parents=True, exist_ok=True)
 
     db_file = Path(db_path).joinpath("diyims.db")
     header_file = Path(header_path).joinpath("header.json")
-    peer_file = Path(header_path).joinpath("peer_table.json")
+    peer_file = Path(peer_path).joinpath("peer_table.json")
+    want_item_file = Path(want_item_path).joinpath("want_item.json")
 
     url_dict = get_url_dict()
     with requests.post(url_dict["id"], stream=False) as r:
@@ -78,6 +81,7 @@ def install_app(drive_letter, force_install):
     parser["Paths"] = {}
     parser["Files"] = {}
     parser["IPFS"] = {}
+    parser["Beacon"] = {}
     parser["Paths"]["config_path"] = str(config_path)
     parser["Files"]["config_file"] = str(config_file)
     parser["Paths"]["db_path"] = str(db_path)
@@ -87,7 +91,13 @@ def install_app(drive_letter, force_install):
     parser["Files"]["header_file"] = str(header_file)
     parser["Paths"]["peer_path"] = str(peer_path)
     parser["Files"]["peer_file"] = str(peer_file)
+    parser["Paths"]["want_item_path"] = str(want_item_path)
+    parser["Paths"]["want_item_file"] = str(want_item_file)
     parser["IPFS"]["agent"] = json_dict["AgentVersion"]
+    parser["Beacon"]["minutes_to_run"] = "1"
+    parser["Beacon"]["long_period_seconds"] = "60"
+    parser["Beacon"]["short_period_seconds"] = "30"
+    parser["Beacon"]["number_of_periods"] = "5"
     with open(config_file, "w") as configfile:
         parser.write(configfile)
     print("Installation Complete")

@@ -36,15 +36,6 @@ def test_want_item_wait():
 
 
 @pytest.mark.component
-def test_multi():
-    """testing find_providers with native windows install"""
-    command_string = "multi-test --five-minute-intervals=6"
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0
-
-
-@pytest.mark.component
 def test_want_list_stats():
     """testing find_providers with native windows install"""
     command_string = "want-list-stats"

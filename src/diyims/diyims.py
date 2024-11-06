@@ -12,14 +12,14 @@ from typing_extensions import Annotated
 from typing import Optional
 
 from diyims import install_cli
-from diyims.beacon_utils import create_beacon_CID
+from diyims import beacon_cli
+
 from diyims.capture_want_lists import get_remote_peers
 
-# import diyims
 from diyims.find_providers import get_providers
 from diyims.ipfs_utils import force_purge, purge
 from diyims.research_utils import get_bitswap_stat, get_swarm_peers
-from diyims.worker_multi import main
+
 
 app = typer.Typer(
     no_args_is_help=True, help="Base command for the DIY Independent Media Services."
@@ -27,6 +27,7 @@ app = typer.Typer(
 # app.add_typer(database_cli.app, name="database")
 # app.add_typer(configuration_cli.app, name="config")
 app.add_typer(install_cli.app, name="install-utils")
+app.add_typer(beacon_cli.app, name="beacon-utils")
 
 
 @app.command()
@@ -77,35 +78,6 @@ def capture_want_lists(
     message
     """
     get_remote_peers(ten_second_intervals)
-
-
-@app.command()
-def beacon_CID():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-    """
-    create_beacon_CID()
-
-
-@app.command()
-def multi_test(
-    five_minute_intervals: Annotated[
-        Optional[int],
-        typer.Option(
-            help="The drive letter to use if not the default eg 'C:', note the colon.",
-            show_default=True,
-            rich_help_panel="Install Options",
-        ),
-    ] = 6,
-):
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-    """
-    main(five_minute_intervals)
 
 
 @app.command()

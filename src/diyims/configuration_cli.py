@@ -1,7 +1,7 @@
 import typer
 from rich import print
 
-from diyims.config import list_config
+from config_utils import list_config
 
 app = typer.Typer(no_args_is_help=True, help="Configuration activities.")
 
