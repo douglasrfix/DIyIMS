@@ -26,16 +26,19 @@ from diyims.path_utils import get_path_dict
 # from time import sleep
 
 
-def get_bitswap_stat():
+def capture_peer_stats():
+    # print(str(datetime.now(timezone.utc)))
     for _ in range(1):
-        added_stats = get_bitswap_stats_peers()
+        # print(str(datetime.now(timezone.utc)))
+        added_stats = capture_bitswap_peers()
         added_swarm = get_swarm_peers()
+        # print(str(datetime.now(timezone.utc)), added_stats, added_swarm)
         # sleep(2)
 
     return added_stats + added_swarm
 
 
-def get_bitswap_stats_peers():
+def capture_bitswap_peers():
     url_dict = get_url_dict()
     path_dict = get_path_dict()
 
@@ -55,7 +58,7 @@ def get_bitswap_stats_peers():
             DTS = str(datetime.now(timezone.utc))
             peer_table_dict["peer_ID"] = peer
             peer_table_dict["local_update_DTS"] = DTS
-            peer_table_dict["processing_status"] = "RP"
+            peer_table_dict["processing_status"] = "BP"
             try:
                 insert_peer_row(conn, peer_table_dict)
                 conn.commit()

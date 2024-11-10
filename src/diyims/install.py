@@ -53,7 +53,7 @@ def install_app(drive_letter, force_install):
     log_path = install_template_dict["log_path"]
     header_path = install_template_dict["header_path"]
     peer_path = install_template_dict["peer_path"]
-    want_item_path = install_template_dict["want_list_path"]
+    want_item_path = install_template_dict["want_item_path"]
 
     config_file = Path(config_path).joinpath("diyims.ini")
     if config_file.exists():
@@ -92,7 +92,7 @@ def install_app(drive_letter, force_install):
     parser["Paths"]["peer_path"] = str(peer_path)
     parser["Files"]["peer_file"] = str(peer_file)
     parser["Paths"]["want_item_path"] = str(want_item_path)
-    parser["Paths"]["want_item_file"] = str(want_item_file)
+    parser["Files"]["want_item_file"] = str(want_item_file)
     parser["IPFS"]["agent"] = json_dict["AgentVersion"]
     parser["Beacon"]["minutes_to_run"] = "1"
     parser["Beacon"]["long_period_seconds"] = "60"

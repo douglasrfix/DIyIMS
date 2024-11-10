@@ -20,7 +20,7 @@ def test_find_providers():
 @pytest.mark.component
 def test_capture_want_lists():
     """testing find_providers with native windows install"""
-    command_string = "capture-want-lists --ten-second-intervals=240"
+    command_string = "capture-want-lists --ten-second-intervals=480"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
@@ -36,9 +36,9 @@ def test_want_item_wait():
 
 
 @pytest.mark.component
-def test_want_list_stats():
+def test_remote_peer_stats():
     """testing find_providers with native windows install"""
-    command_string = "want-list-stats"
+    command_string = "capture-remote-peer-stats"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

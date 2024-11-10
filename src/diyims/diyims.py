@@ -14,11 +14,15 @@ from typing import Optional
 from diyims import install_cli
 from diyims import beacon_cli
 
-from diyims.capture_want_lists import get_remote_peers
+from diyims.capture_want_lists import process_peers
 
 from diyims.find_providers import get_providers
 from diyims.ipfs_utils import force_purge, purge
-from diyims.research_utils import get_bitswap_stat, get_swarm_peers
+from diyims.research_utils import (
+    capture_bitswap_peers,
+    get_swarm_peers,
+    capture_peer_stats,
+)
 
 
 app = typer.Typer(
@@ -77,24 +81,34 @@ def capture_want_lists(
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_remote_peers(ten_second_intervals)
+    process_peers(ten_second_intervals)
 
 
 @app.command()
-def want_list_stats():
+def capture_remote_peer_stats():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_bitswap_stat()
+    capture_peer_stats()
 
 
 @app.command()
-def want_list_swarm():
+def capture_swarm_stats():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
     get_swarm_peers()
+
+
+@app.command()
+def capture_bitswap_stats():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    capture_bitswap_peers()

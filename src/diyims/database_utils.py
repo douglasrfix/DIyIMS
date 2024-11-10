@@ -56,18 +56,46 @@ def refresh_network_table_dict():
     return network_table_dict
 
 
-def insert_want_list_row(conn, want_list_table_dict):
-    sql_str = get_sql_str()
-    queries = aiosql.from_str(sql_str, "sqlite3")
+def insert_want_list_row(conn, queries, want_list_table_dict):
+    # sql_str = get_sql_str()
+    # queries = aiosql.from_str(sql_str, "sqlite3")
 
     queries.insert_want_list_row(
         conn,
         want_list_table_dict["peer_ID"],
         want_list_table_dict["object_CID"],
         want_list_table_dict["insert_DTS"],
+        want_list_table_dict["last_update_DTS"],
+        want_list_table_dict["insert_update_delta"],
         want_list_table_dict["source_peer_type"],
     )
     return
+
+
+def update_last_update_DTS(conn, queries, want_list_table_dict):
+    # sql_str = get_sql_str()
+    # queries = aiosql.from_str(sql_str, "sqlite3")
+
+    queries.update_last_update_DTS(
+        conn,
+        want_list_table_dict["last_update_DTS"],
+        want_list_table_dict["insert_update_delta"],
+        want_list_table_dict["peer_ID"],
+        want_list_table_dict["object_CID"],
+    )
+    return
+
+
+def select_want_list_entry_by_key(conn, queries, want_list_table_dict):
+    # sql_str = get_sql_str()
+    # queries = aiosql.from_str(sql_str, "sqlite3")
+
+    want_list_entry = queries.select_want_list_entry_by_key(
+        conn,
+        want_list_table_dict["peer_ID"],
+        want_list_table_dict["object_CID"],
+    )
+    return want_list_entry
 
 
 def refresh_want_list_table_dict():
@@ -75,6 +103,8 @@ def refresh_want_list_table_dict():
     want_list_table_dict["peer_ID"] = "null"
     want_list_table_dict["object_CID"] = "null"
     want_list_table_dict["insert_DTS"] = "null"
+    want_list_table_dict["last_update_DTS"] = "null"
+    want_list_table_dict["insert_update_delta"] = "null"
     want_list_table_dict["source_peer_type"] = "null"
     return want_list_table_dict
 

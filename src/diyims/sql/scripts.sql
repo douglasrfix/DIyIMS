@@ -27,7 +27,10 @@ CREATE TABLE "want_list_table" (
 	"peer_ID"	TEXT,
 	"object_CID" TEXT,
 	"insert_DTS"	TEXT,
-	"source_peer_type"	TEXT
+	"last_update_DTS" TEXT,
+	"insert_update_delta" TEXT,
+	"source_peer_type"	TEXT,
+	PRIMARY KEY("peer_ID", "object_CID")
 );
 
 CREATE TABLE "network_table" (
@@ -47,8 +50,14 @@ values (:version, :object_CID, :object_type, :insert_DTS,
 	 :prior_header_CID, :header_CID);
 
 -- name: insert_want_list_row!
-insert into want_list_table (peer_ID, object_CID, insert_DTS, source_peer_type)
-values (:peer_ID, :object_CID, :insert_DTS, :source_peer_type);
+insert into want_list_table (peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type)
+values (:peer_ID, :object_CID, :insert_DTS, :last_update_DTS,
+ :insert_update_delta, :source_peer_type);
+
+-- name: update_last_update_DTS!
+update want_list_table set last_update_DTS = :last_update_DTS,
+ insert_update_delta = :insert_update_delta
+where peer_ID = :peer_ID and object_CID = :object_CID
 
 -- name: insert_network_row!
 insert into network_table (network_name)
@@ -113,7 +122,7 @@ FROM
 
 ;
 
--- name: select_remote_peers
+-- name: select_all_peers
 SELECT
 	peer_ID,
 	IPNS_name,
@@ -129,4 +138,8 @@ SELECT
 FROM
    peer_table
 
-WHERE processing_status = "NP"
+
+-- name: select_want_list_entry_by_key^
+select peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type
+from want_list_table
+where peer_ID = :peer_ID and object_CID = :object_CID

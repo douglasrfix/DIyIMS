@@ -60,11 +60,12 @@
 # [x]: add diyims agent to identify who/what created an artifact for the network.
 # [x]: Set PYTHONDEVMODE to 1 for running tests
 # [x]: add table value for platform release level eg. window 10
-# [ ]: add peer type
+# [ ]: add peer type to peer table
 # [x]: combine sql_table_dict with db utils rename db_operations
 # [x]: apt requires support is > 9.0
-# [X]: create config entry for want item.json
+# [x]: create config entry for want item.json
 # [x]: make unique file name
-# NOTE: this will require a purge function
+# [x]: this will require a purge function
 # [x]: create config entry for want item
 # [x]: for beacon timings
+# [ ]: should cache reside on data drive if one is specified?

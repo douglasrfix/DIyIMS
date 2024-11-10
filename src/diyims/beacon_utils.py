@@ -102,3 +102,9 @@ def get_beacon_dict():
     beacon_dict["number_of_periods"] = parser["Beacon"]["number_of_periods"]
 
     return beacon_dict
+
+
+def purge_want_items():  # NOTE: add date attributes to selection for purge
+    path_dict = get_path_dict()
+    for file in Path(path_dict["want_item_path"]).glob("want_item*.json"):
+        Path(file).unlink()

@@ -2,7 +2,7 @@ from typing import Optional
 
 import typer
 from typing_extensions import Annotated
-from diyims.beacon_utils import create_beacon_CID, non_multi_flash
+from diyims.beacon_utils import create_beacon_CID, non_multi_flash, purge_want_items
 from diyims.worker_multi import main
 
 app = typer.Typer(
@@ -29,6 +29,17 @@ def partial_beacon():
     message
     """
     non_multi_flash()
+    return
+
+
+@app.command()
+def purge_beacon_files():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    purge_want_items()
     return
 
 
