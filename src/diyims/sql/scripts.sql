@@ -28,7 +28,7 @@ CREATE TABLE "want_list_table" (
 	"object_CID" TEXT,
 	"insert_DTS"	TEXT,
 	"last_update_DTS" TEXT,
-	"insert_update_delta" TEXT,
+	"insert_update_delta" INTEGER,
 	"source_peer_type"	TEXT,
 	PRIMARY KEY("peer_ID", "object_CID")
 );

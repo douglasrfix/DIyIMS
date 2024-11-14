@@ -58,6 +58,7 @@ def get_path_dict():
     path_dict["db_path"] = Path(parser["Paths"]["db_path"])
     path_dict["db_file"] = Path(parser["Files"]["db_file"])
     path_dict["log_path"] = Path(parser["Paths"]["log_path"])
+    path_dict["log_file"] = Path(parser["Files"]["log_file"])
     path_dict["header_path"] = Path(parser["Paths"]["header_path"])
     path_dict["header_file"] = Path(parser["Files"]["header_file"])
     path_dict["peer_path"] = Path(parser["Paths"]["peer_path"])

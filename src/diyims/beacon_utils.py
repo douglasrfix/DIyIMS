@@ -3,6 +3,7 @@ import sqlite3
 import configparser
 import aiosql
 import requests
+from time import sleep
 from pathlib import Path
 from diyims.general_utils import get_DTS
 from diyims.ipfs_utils import get_url_dict
@@ -13,18 +14,18 @@ from diyims.path_utils import (
 )
 from diyims.py_version_dep import get_sql_str
 from diyims.want_item_utils import refresh_want_item_dict
-from diyims.worker_runner import run_worker
+from diyims.beacon_runner import run_beacon
 from diyims.error_classes import ApplicationNotInstalledError
 
 
-def create_beacon_CID():
+def create_beacon_CID(logger):
     url_dict = get_url_dict()
     path_dict = get_path_dict()
 
     sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
     connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(connect_path)
+    conn = sqlite3.connect(connect_path, timeout=60)
     conn.row_factory = sqlite3.Row
 
     header_row = queries.select_last_peer_table_entry_header(conn)
@@ -43,11 +44,23 @@ def create_beacon_CID():
 
     add_files = {"file": open(want_item_file, "rb")}
     add_params = {"only-hash": "true", "pin": "false"}
-    with requests.post(url=url_dict["add"], params=add_params, files=add_files) as r:
-        r.raise_for_status()
-        json_dict = json.loads(r.text)
-        last_peer_table_entry_CID = json_dict["Hash"]
-        beacon_CID = last_peer_table_entry_CID
+    i = 0
+    not_found = True
+    while i < 30 and not_found:
+        try:
+            with requests.Session().post(
+                url=url_dict["add"], params=add_params, files=add_files, timeout=30.15
+            ) as r:
+                r.raise_for_status()
+                json_dict = json.loads(r.text)
+                last_peer_table_entry_CID = json_dict["Hash"]
+                beacon_CID = last_peer_table_entry_CID
+                not_found = False
+                logger.debug("Create")
+        except ConnectionError:
+            logger.exception()
+            sleep(1)
+            i += 1
 
     return beacon_CID, want_item_file
 
@@ -55,30 +68,28 @@ def create_beacon_CID():
 def non_multi_flash():
     beacon_CID, satisfy_CID = create_beacon_CID()
     satisfy_beacon(satisfy_CID)
-    run_worker(beacon_CID)
+    run_beacon(beacon_CID)
     return
 
 
-def flash_beacon(beacon_CID):
-    url_dict = get_url_dict()
-    get_arg = {
-        "arg": beacon_CID,
-        # "output": str(path_dict['log_path']) + '/' + IPNS_name + '.txt',  # NOTE: Path does not work
-    }
-
-    with requests.post(url_dict["get"], params=get_arg, stream=False) as r:
-        r.raise_for_status()
-
-    return
-
-
-def satisfy_beacon(want_item_file):
+def satisfy_beacon(logger, want_item_file):
     url_dict = get_url_dict()
     add_files = {"file": open(want_item_file, "rb")}
     add_params = {"only-hash": "false", "pin": "false"}
-    with requests.post(url=url_dict["add"], params=add_params, files=add_files) as r:
-        r.raise_for_status()
-
+    i = 0
+    not_found = True
+    while i < 30 and not_found:
+        try:
+            with requests.post(
+                url=url_dict["add"], params=add_params, files=add_files
+            ) as r:
+                r.raise_for_status()
+                not_found = False
+                logger.debug("Satisfy")
+        except ConnectionError:
+            logger.exception()
+            sleep(1)
+            i += 1
     return
 
 

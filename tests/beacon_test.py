@@ -11,7 +11,7 @@ runner = CliRunner()
 # @pytest.mark.skip
 def test_full_beacon():
     """testing find_providers with native windows install"""
-    command_string = "beacon-utils beacon-test"
+    command_string = "beacon-utils beacon-operation --minutes-to-run=15"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

@@ -3,7 +3,7 @@ from typing import Optional
 import typer
 from typing_extensions import Annotated
 from diyims.beacon_utils import create_beacon_CID, non_multi_flash, purge_want_items
-from diyims.worker_multi import main
+from diyims.beacon_multi import beacon_main
 
 app = typer.Typer(
     no_args_is_help=True, help="Execution of the Beacon function and subsets."
@@ -44,7 +44,7 @@ def purge_beacon_files():
 
 
 @app.command()
-def beacon_test(
+def beacon_operation(
     minutes_to_run: Annotated[
         Optional[str],
         typer.Option(
@@ -85,5 +85,7 @@ def beacon_test(
     message
     """
 
-    main(minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods)
+    beacon_main(
+        minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods
+    )
     return

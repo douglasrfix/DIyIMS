@@ -68,6 +68,7 @@ def install_app(drive_letter, force_install):
     peer_path.mkdir(mode=755, parents=True, exist_ok=True)
     want_item_path.mkdir(mode=755, parents=True, exist_ok=True)
 
+    log_file = Path(log_path).joinpath("diyims.log")
     db_file = Path(db_path).joinpath("diyims.db")
     header_file = Path(header_path).joinpath("header.json")
     peer_file = Path(peer_path).joinpath("peer_table.json")
@@ -87,6 +88,7 @@ def install_app(drive_letter, force_install):
     parser["Paths"]["db_path"] = str(db_path)
     parser["Files"]["db_file"] = str(db_file)
     parser["Paths"]["log_path"] = str(log_path)
+    parser["Files"]["log_file"] = str(log_file)
     parser["Paths"]["header_path"] = str(header_path)
     parser["Files"]["header_file"] = str(header_file)
     parser["Paths"]["peer_path"] = str(peer_path)
@@ -95,8 +97,8 @@ def install_app(drive_letter, force_install):
     parser["Files"]["want_item_file"] = str(want_item_file)
     parser["IPFS"]["agent"] = json_dict["AgentVersion"]
     parser["Beacon"]["minutes_to_run"] = "1"
-    parser["Beacon"]["long_period_seconds"] = "60"
-    parser["Beacon"]["short_period_seconds"] = "30"
+    parser["Beacon"]["long_period_seconds"] = "120"
+    parser["Beacon"]["short_period_seconds"] = "60"
     parser["Beacon"]["number_of_periods"] = "5"
     with open(config_file, "w") as configfile:
         parser.write(configfile)

@@ -1,14 +1,21 @@
 from multiprocessing import Process, freeze_support, set_start_method
 
 from diyims.beacon_utils import create_beacon_CID, satisfy_beacon, get_beacon_dict
-from diyims.worker_runner import run_worker
+from diyims.beacon_runner import run_beacon
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 
+from diyims.logger_utils import get_logger
 
-def main(minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods):
+
+def beacon_main(
+    minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods
+):
     freeze_support()
     set_start_method("spawn")
+
+    logger = get_logger()
+    logger.info("Startup of Beacon.")
     beacon_dict = get_beacon_dict()
     if minutes_to_run != "Default":
         beacon_dict["minutes_to_run"] = minutes_to_run
@@ -25,18 +32,19 @@ def main(minutes_to_run, long_period_seconds, short_period_seconds, number_of_pe
 
     while target_DT > current_DT:
         for _ in range(int(beacon_dict["number_of_periods"])):
-            beacon_CID, want_item_file = create_beacon_CID()
-            process = Process(target=run_worker, args=(beacon_CID,))
+            beacon_CID, want_item_file = create_beacon_CID(logger)
+            process = Process(target=run_beacon, args=(beacon_CID,))
             process.start()
             process.join(timeout=int(beacon_dict["short_period_seconds"]))
-            satisfy_beacon(want_item_file)
+            satisfy_beacon(logger, want_item_file)
 
         for _ in range(int(beacon_dict["number_of_periods"])):
-            beacon_CID, want_item_file = create_beacon_CID()
-            process = Process(target=run_worker, args=(beacon_CID,))
+            beacon_CID, want_item_file = create_beacon_CID(logger)
+            process = Process(target=run_beacon, args=(beacon_CID,))
             process.start()
             process.join(timeout=int(beacon_dict["long_period_seconds"]))
-            satisfy_beacon(want_item_file)
+            satisfy_beacon(logger, want_item_file)
 
         current_DT = datetime.now()
+    logger.info("Normal shutdown of Beacon.")
     return

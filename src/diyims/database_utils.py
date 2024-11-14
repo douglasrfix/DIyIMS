@@ -104,7 +104,7 @@ def refresh_want_list_table_dict():
     want_list_table_dict["object_CID"] = "null"
     want_list_table_dict["insert_DTS"] = "null"
     want_list_table_dict["last_update_DTS"] = "null"
-    want_list_table_dict["insert_update_delta"] = "null"
+    want_list_table_dict["insert_update_delta"] = 0
     want_list_table_dict["source_peer_type"] = "null"
     return want_list_table_dict
 
