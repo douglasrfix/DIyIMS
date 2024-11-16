@@ -1,5 +1,6 @@
 
 -- name: create_schema#
+-- #NOTE: pragma for wal
 CREATE TABLE "header_table" (
 	"version" TEXT,
 	"object_CID"	TEXT,

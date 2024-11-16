@@ -3,6 +3,7 @@ import sqlite3
 import configparser
 import aiosql
 import requests
+import datetime
 from time import sleep
 from pathlib import Path
 from diyims.general_utils import get_DTS
@@ -18,6 +19,7 @@ from diyims.beacon_runner import run_beacon
 from diyims.error_classes import ApplicationNotInstalledError
 
 
+# NOTE: beacon purge both ipfs and cache with time delay to allow retrieval
 def create_beacon_CID(logger):
     url_dict = get_url_dict()
     path_dict = get_path_dict()
@@ -57,6 +59,7 @@ def create_beacon_CID(logger):
                 beacon_CID = last_peer_table_entry_CID
                 not_found = False
                 logger.debug("Create")
+
         except ConnectionError:
             logger.exception()
             sleep(1)
@@ -115,7 +118,17 @@ def get_beacon_dict():
     return beacon_dict
 
 
-def purge_want_items():  # NOTE: add date attributes to selection for purge
+def purge_want_items():
+    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+    end_date = datetime.datetime.now() - datetime.timedelta(days=1)
+
     path_dict = get_path_dict()
-    for file in Path(path_dict["want_item_path"]).glob("want_item*.json"):
-        Path(file).unlink()
+    dir_path = Path(path_dict["want_item_path"])
+    pattern = "want_item*.*"
+    files = dir_path.glob(pattern)
+
+    for file in files:
+        modified_time = file.stat().st_mtime
+        modified_date = datetime.datetime.fromtimestamp(modified_time)
+        if modified_date >= start_date and modified_date <= end_date:
+            Path(file).unlink()

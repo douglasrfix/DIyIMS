@@ -51,7 +51,6 @@ def install(
     except UnTestedPlatformError as error:
         print(
             error.system,
-            error.release,
             "is an untested platform if Python was installed via the Microsoft Store application.",
         )
 

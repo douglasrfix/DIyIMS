@@ -24,3 +24,6 @@ def get_DTS():  # NOTE: rename to dts utc
     DTS = str(datetime.now(timezone.utc))
 
     return DTS
+
+
+# NOTE: create utility to wait for the ipfs application to wake up

@@ -13,10 +13,11 @@ from typing import Optional
 
 from diyims import install_cli
 from diyims import beacon_cli
+from diyims import temp
 
 from diyims.capture_want_lists import process_peers
 
-from diyims.find_providers import get_providers
+from diyims.peer_utils import get_providers
 from diyims.ipfs_utils import force_purge, purge
 from diyims.research_utils import (
     capture_bitswap_peers,
@@ -112,3 +113,13 @@ def capture_bitswap_stats():
     message
     """
     capture_bitswap_peers()
+
+
+@app.command()
+def temp_test():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    temp.main()

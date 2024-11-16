@@ -69,3 +69,4 @@
 # [x]: create config entry for want item
 # [x]: for beacon timings
 # [ ]: should cache reside on data drive if one is specified?
+# NOTE: add date attributes to selection for purge
