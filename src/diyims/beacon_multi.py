@@ -9,7 +9,7 @@ from diyims.beacon_utils import (
 from diyims.beacon_runner import run_beacon
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
-from time import sleep
+from diyims.ipfs_utils import wait_on_ipfs
 
 from diyims.logger_utils import get_logger
 
@@ -22,7 +22,7 @@ def beacon_main(
 
     logger = get_logger()
     purge_want_items()
-    sleep(120)
+    wait_on_ipfs()
     logger.info("Startup of Beacon.")
     beacon_dict = get_beacon_dict()
     if minutes_to_run != "Default":

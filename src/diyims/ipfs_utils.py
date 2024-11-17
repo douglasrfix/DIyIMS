@@ -1,6 +1,7 @@
 import json
 import os
 import sqlite3
+from time import sleep
 
 import aiosql
 import requests
@@ -23,9 +24,9 @@ def get_url_dict():
     url_dict["pin_remove"] = "http://127.0.0.1:5001/api/v0/pin/rm"
     url_dict["run_gc"] = "http://127.0.0.1:5001/api/v0/repo/gc"
     url_dict["want_list"] = "http://127.0.0.1:5001/api/v0/bitswap/wantlist"
-    url_dict[
-        "bitswap_stat"
-    ] = "http://127.0.0.1:5001/api/v0/bitswap/stat"  # NOTE: make the key the name of the command
+    url_dict["bitswap_stat"] = (
+        "http://127.0.0.1:5001/api/v0/bitswap/stat"  # NOTE: make the key the name of the command
+    )
     url_dict["swarm_peers"] = "http://127.0.0.1:5001/api/v0/swarm/peers"
 
     return url_dict
@@ -142,3 +143,18 @@ def force_purge():
 
     with requests.post(url_dict["run_gc"], stream=False) as r:
         r.raise_for_status()
+
+
+def wait_on_ipfs():
+    url_dict = get_url_dict()
+    i = 0
+    not_found = True
+    while i < 30 and not_found:
+        try:
+            with requests.Session().post(url=url_dict["id"], timeout=30.15) as r:
+                r.raise_for_status()
+                not_found = False
+
+        except requests.exceptions.ConnectionError:
+            sleep(60)
+            i += 1

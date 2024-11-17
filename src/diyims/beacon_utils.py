@@ -19,7 +19,7 @@ from diyims.beacon_runner import run_beacon
 from diyims.error_classes import ApplicationNotInstalledError
 
 
-# NOTE: beacon purge both ipfs and cache with time delay to allow retrieval
+# NOTE: beacon purge both ipfs
 def create_beacon_CID(logger):
     url_dict = get_url_dict()
     path_dict = get_path_dict()
@@ -59,13 +59,12 @@ def create_beacon_CID(logger):
                 beacon_CID = last_peer_table_entry_CID
                 not_found = False
                 logger.debug("Create")
+                return beacon_CID, want_item_file
 
-        except ConnectionError:
-            logger.exception()
-            sleep(1)
+        except requests.exceptions.ConnectionError:
+            logger.exception("ConnectionError")
+            sleep(10)
             i += 1
-
-    return beacon_CID, want_item_file
 
 
 def non_multi_flash():
