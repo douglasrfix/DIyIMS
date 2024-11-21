@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a18"
+version = "0.0.0a19"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ repository = "https://github.com/douglasrfix/diyims"
 packages = [{include = "diyims", from = "src"}]
 
 [tool.poetry.scripts]
-diyims = "diyims.diyims:app"
+diyims = "diyims.diyims_cmd:app"
 
 [tool.poetry.dependencies]
 python = ">=3.9, <3.12"
@@ -17,11 +17,14 @@ requests = ">=2.32.0"
 aiosql = ">=9.0"
 typer = ">=0.12.4"
 python-dateutil = "^2.9.0.post0"
+apscheduler = "^3.10.4"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = [
     # "-m component",
+    "-n 10",
+    # "--dist load",
     "-rA",
     "-vv",
     "--capture=tee-sys",
@@ -33,6 +36,7 @@ addopts = [
 markers = [
     "setup",
     "component",
+    "mp",
 ]
 [tool.poetry.group.dev.dependencies]
 pre-commit = ">=3.0.0"
@@ -40,6 +44,7 @@ pytest = ">= 8.0.0"
 pytest-cov = ">=5.0.0"
 flake8-pyproject = "^1.2.3"
 ruff = "^0.7.0"
+pytest-xdist = "^3.6.1"
 
 [tool.flake8]
 # B905 should be enabled when we drop support for 3.9

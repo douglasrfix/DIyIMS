@@ -6,17 +6,16 @@ import requests
 import datetime
 from time import sleep
 from pathlib import Path
-from diyims.general_utils import get_DTS
+
 from diyims.ipfs_utils import get_url_dict
-from diyims.path_utils import (
-    get_path_dict,
-    get_unique_item_file,
-    get_install_template_dict,
-)
+from diyims.general_utils import get_DTS
 from diyims.py_version_dep import get_sql_str
 from diyims.want_item_utils import refresh_want_item_dict
-from diyims.beacon_runner import run_beacon
+from diyims.path_utils import get_path_dict, get_unique_item_file
 from diyims.error_classes import ApplicationNotInstalledError
+from diyims.path_utils import (
+    get_install_template_dict,
+)
 
 
 # NOTE: beacon purge both ipfs
@@ -63,14 +62,31 @@ def create_beacon_CID(logger):
 
         except requests.exceptions.ConnectionError:
             logger.exception("ConnectionError")
-            sleep(10)
+            sleep(10)  # NOTE: get wait and loop values from config
             i += 1
 
 
-def non_multi_flash():
-    beacon_CID, satisfy_CID = create_beacon_CID()
-    satisfy_beacon(satisfy_CID)
-    run_beacon(beacon_CID)
+def flash_beacon(logger, beacon_CID):
+    url_dict = get_url_dict()
+    get_arg = {
+        "arg": beacon_CID,
+        # "output": str(path_dict['log_path']) + '/' + IPNS_name + '.txt',  # NOTE: Path does not work
+    }
+    i = 0
+    not_found = True
+    while i < 30 and not_found:
+        try:
+            logger.debug("Flash on")
+            with requests.Session().post(
+                url_dict["get"], params=get_arg, stream=False
+            ) as r:
+                r.raise_for_status()
+                not_found = False
+                logger.debug("Flash off")
+        except ConnectionError:
+            logger.exception()
+            sleep(1)  # NOTE: get wait and loop values from config
+            i += 1
     return
 
 
@@ -90,7 +106,7 @@ def satisfy_beacon(logger, want_item_file):
                 logger.debug("Satisfy")
         except ConnectionError:
             logger.exception()
-            sleep(1)
+            sleep(1)  # NOTE: get wait and loop values from config
             i += 1
     return
 
@@ -118,7 +134,9 @@ def get_beacon_dict():
 
 
 def purge_want_items():
-    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
+    start_date = datetime.datetime.now() - datetime.timedelta(
+        days=30
+    )  # NOTE: get days values from config
     end_date = datetime.datetime.now() - datetime.timedelta(days=1)
 
     path_dict = get_path_dict()

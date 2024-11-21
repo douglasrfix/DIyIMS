@@ -2,8 +2,8 @@ from typing import Optional
 
 import typer
 from typing_extensions import Annotated
-from diyims.beacon_utils import create_beacon_CID, non_multi_flash, purge_want_items
-from diyims.beacon_multi import beacon_main
+from diyims.beacon_utils import create_beacon_CID, purge_want_items
+from diyims.beacon import beacon_main
 
 app = typer.Typer(
     no_args_is_help=True, help="Execution of the Beacon function and subsets."
@@ -18,17 +18,6 @@ def beacon_CID():
     message
     """
     create_beacon_CID()
-    return
-
-
-@app.command()
-def partial_beacon():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-    """
-    non_multi_flash()
     return
 
 
@@ -89,3 +78,6 @@ def beacon_operation(
         minutes_to_run, long_period_seconds, short_period_seconds, number_of_periods
     )
     return
+
+
+# NOTE: add wait on ipfs

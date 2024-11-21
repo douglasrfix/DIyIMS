@@ -1,9 +1,11 @@
 import logging
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
+
 from diyims.path_utils import get_path_dict
 
 
-def get_logger():
+def get_logger(file):
     path_dict = get_path_dict()
 
     logger = logging.getLogger(__name__)
@@ -12,10 +14,10 @@ def get_logger():
 
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(formatter)
-    console_handler.setLevel("INFO")
+    console_handler.setLevel("INFO")  # NOTE: get logging levels from config
 
     file_handler = RotatingFileHandler(
-        path_dict["log_file"],
+        Path(path_dict["log_path"]).joinpath(file),
         mode="a",
         maxBytes=100000,
         backupCount=1,

@@ -17,7 +17,7 @@ from diyims.path_utils import get_install_template_dict
 from diyims.platform_utils import test_os_platform
 
 
-def install_app(drive_letter, force_install):
+def install_main(drive_letter, force_install):
     try:
         os_platform = test_os_platform()
 
@@ -75,7 +75,8 @@ def install_app(drive_letter, force_install):
     want_item_file = Path(want_item_path).joinpath("want_item.json")
 
     url_dict = get_url_dict()
-    with requests.post(url_dict["id"], stream=False) as r:
+
+    with requests.post(url_dict["id"], stream=False) as r:  # NOTE: add wait on ipfs
         json_dict = json.loads(r.text)
 
     parser = configparser.ConfigParser()

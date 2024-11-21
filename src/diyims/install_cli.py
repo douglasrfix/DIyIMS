@@ -14,7 +14,7 @@ from diyims.error_classes import (
     UnSupportedPlatformError,
     UnTestedPlatformError,
 )
-from diyims.install import install_app
+from diyims.install import install_main
 
 app = typer.Typer(no_args_is_help=True, help="Installation activities.")
 
@@ -46,7 +46,7 @@ def install(
 
     """
     try:
-        install_app(drive_letter, force_install)
+        install_main(drive_letter, force_install)
 
     except UnTestedPlatformError as error:
         print(
@@ -105,3 +105,6 @@ def init_database():
     except UnSupportedIPFSVersionError as error:
         print(f"{error.value} is not supported")
         raise typer.Exit(code=2)
+
+
+# NOTE: add wait on ipfs

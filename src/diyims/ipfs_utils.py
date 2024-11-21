@@ -156,5 +156,5 @@ def wait_on_ipfs():
                 not_found = False
 
         except requests.exceptions.ConnectionError:
-            sleep(60)
+            sleep(60)  # NOTE: set sleep and loop values from config
             i += 1

@@ -49,7 +49,7 @@ def create():
     return
 
 
-def init():
+def init():  # NOTE: add wait on ipfs
     try:
         path_dict = get_path_dict()
 
