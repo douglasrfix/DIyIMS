@@ -41,7 +41,7 @@ from diyims.ipfs_utils import wait_on_ipfs
 
 def main():
     wait_on_ipfs()
-    executors = {"default": ProcessPoolExecutor(max_workers=5)}
+    executors = {"default": ProcessPoolExecutor(max_workers=3)}
     scheduler = BackgroundScheduler(executors=executors)
     scheduler.add_job(
         queue_main,
@@ -72,7 +72,7 @@ def main():
     )
     # scheduler.add_job(tick, 'interval', seconds=3)
     scheduler.start()
-    sleep(1)
+    sleep(3)
     scheduler.shutdown()
     return
 
