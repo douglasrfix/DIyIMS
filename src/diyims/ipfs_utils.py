@@ -145,16 +145,20 @@ def force_purge():
         r.raise_for_status()
 
 
-def wait_on_ipfs():
+def wait_on_ipfs(logger):
     url_dict = get_url_dict()
     i = 0
     not_found = True
+    logger.debug("ipfs wait started.")
+    sleep(60)
     while i < 30 and not_found:
         try:
             with requests.Session().post(url=url_dict["id"], timeout=30.15) as r:
                 r.raise_for_status()
                 not_found = False
-
+                logger.debug("ipfs wait completed.")
         except requests.exceptions.ConnectionError:
+            logger.exception("wait on ipfs.")
             sleep(60)  # NOTE: set sleep and loop values from config
             i += 1
+    return

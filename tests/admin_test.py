@@ -3,7 +3,7 @@ import shlex
 import pytest
 from typer.testing import CliRunner
 
-from diyims.diyims import app
+from diyims.diyims_cmd import app
 
 runner = CliRunner()
 

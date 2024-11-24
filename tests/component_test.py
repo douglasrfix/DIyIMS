@@ -3,7 +3,7 @@ import shlex
 import pytest
 from typer.testing import CliRunner
 
-from diyims.diyims import app
+from diyims.diyims_cmd import app
 
 runner = CliRunner()
 
@@ -20,7 +20,7 @@ def test_find_providers():
 @pytest.mark.component
 def test_capture_want_lists():
     """testing find_providers with native windows install"""
-    command_string = "capture-want-lists --ten-second-intervals=1"
+    command_string = "capture-want-lists --ten-second-intervals=960"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

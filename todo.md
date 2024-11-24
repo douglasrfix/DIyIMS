@@ -71,3 +71,4 @@
 # [ ]: should cache reside on data drive if one is specified?
 # [x]: add date attributes to selection for purge
 # [x]: add wait for ipfs function
+ # NOTE: get time to shut sown from config

@@ -13,18 +13,18 @@ from typing import Optional
 
 from diyims import install_cli
 from diyims import beacon_cli
-from diyims.temp import main
+from diyims.temp import scheduler_main
 from diyims.ipfs_utils import force_purge
 from diyims.ipfs_utils import purge
-from diyims.peer_utils import get_providers
+from diyims.peer_utils import capture_providers
 from diyims.capture_want_lists import process_peers
-from diyims.research_utils import (
+from diyims.capture_utils import (
     capture_peer_stats,
 )
-from diyims.research_utils import (
+from diyims.capture_utils import (
     get_swarm_peers,
 )
-from diyims.research_utils import (
+from diyims.capture_utils import (
     capture_bitswap_peers,
 )
 
@@ -66,7 +66,7 @@ def find_providers():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_providers()
+    capture_providers()
 
 
 @app.command()
@@ -125,7 +125,4 @@ def temp_test():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    main()
-
-
-# NOTE: add wait on ipfs
+    scheduler_main()

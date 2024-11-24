@@ -37,12 +37,18 @@ from diyims.beacon import beacon_main
 from diyims.satisfy import satisfy_main
 from diyims.queue_server import queue_main
 from diyims.ipfs_utils import wait_on_ipfs
+from diyims.logger_utils import get_logger
 
 
-def main():
-    wait_on_ipfs()
-    executors = {"default": ProcessPoolExecutor(max_workers=3)}
+def scheduler_main():
+    logger = get_logger("scheduler.log")
+    logger.info("Startup of Scheduler.")
+    wait_on_ipfs(logger)
+    logger.debug("Wait on ipfs completed.")
+    executors = {"default": ProcessPoolExecutor(max_workers=5)}
     scheduler = BackgroundScheduler(executors=executors)
+    scheduler.start()
+    logger.debug("Scheduler start() completed.")
     scheduler.add_job(
         queue_main,
         "cron",
@@ -52,6 +58,8 @@ def main():
         max_instances=1,
         name="queue_main",
     )
+    sleep(15)
+    logger.debug("queue_main added.")
     scheduler.add_job(
         beacon_main,
         "cron",
@@ -61,6 +69,8 @@ def main():
         max_instances=1,
         name="beacon_main",
     )
+    sleep(15)
+    logger.debug("beacon_main added.")
     scheduler.add_job(
         satisfy_main,
         "cron",
@@ -70,12 +80,13 @@ def main():
         max_instances=1,
         name="satisfy_main",
     )
-    # scheduler.add_job(tick, 'interval', seconds=3)
-    scheduler.start()
-    sleep(3)
+    sleep(15)
+    logger.debug("satisfy_main added.")
+    logger.debug("Scheduler shutdown().")
     scheduler.shutdown()
+    logger.info("Scheduler shutdown() completed.")
     return
 
 
 if __name__ == "__main__":
-    main()
+    scheduler_main()

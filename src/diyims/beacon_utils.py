@@ -57,13 +57,13 @@ def create_beacon_CID(logger):
                 last_peer_table_entry_CID = json_dict["Hash"]
                 beacon_CID = last_peer_table_entry_CID
                 not_found = False
-                logger.debug("Create")
+                logger.debug(f"Create {beacon_CID}")
                 return beacon_CID, want_item_file
 
         except requests.exceptions.ConnectionError:
-            logger.exception("ConnectionError")
-            sleep(10)  # NOTE: get wait and loop values from config
             i += 1
+            logger.exception(f"Create loop iteration {i}")
+            sleep(1)  # NOTE: get wait and loop values from config
 
 
 def flash_beacon(logger, beacon_CID):
@@ -76,7 +76,7 @@ def flash_beacon(logger, beacon_CID):
     not_found = True
     while i < 30 and not_found:
         try:
-            logger.debug("Flash on")
+            logger.debug(f"Flash {beacon_CID} on ")
             with requests.Session().post(
                 url_dict["get"], params=get_arg, stream=False
             ) as r:
@@ -84,9 +84,10 @@ def flash_beacon(logger, beacon_CID):
                 not_found = False
                 logger.debug("Flash off")
         except ConnectionError:
-            logger.exception()
-            sleep(1)  # NOTE: get wait and loop values from config
             i += 1
+            logger.exception(f"Flash loop iteration {i}")
+            sleep(1)  # NOTE: get wait and loop values from config
+
     return
 
 
@@ -103,11 +104,13 @@ def satisfy_beacon(logger, want_item_file):
             ) as r:
                 r.raise_for_status()
                 not_found = False
-                logger.debug("Satisfy")
+                logger.debug(f"Satisfy {want_item_file}")
+        #            Path(want_item_file).unlink()      # NOTE: restore after testing
         except ConnectionError:
-            logger.exception()
-            sleep(1)  # NOTE: get wait and loop values from config
             i += 1
+            logger.exception(f"Satisfy loop iteration {i}")
+            sleep(1)  # NOTE: get wait and loop values from config
+
     return
 
 
@@ -125,7 +128,7 @@ def get_beacon_dict():
         raise ApplicationNotInstalledError(" ")
 
     beacon_dict = {}
-    beacon_dict["minutes_to_run"] = parser["Beacon"]["minutes_to_run"]
+    beacon_dict["shutdown_offset_hours"] = parser["Beacon"]["shutdown_offset_hours"]
     beacon_dict["long_period_seconds"] = parser["Beacon"]["long_period_seconds"]
     beacon_dict["short_period_seconds"] = parser["Beacon"]["short_period_seconds"]
     beacon_dict["number_of_periods"] = parser["Beacon"]["number_of_periods"]

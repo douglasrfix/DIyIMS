@@ -1,6 +1,6 @@
-from diyims.beacon import main as main1
-from diyims.satisfy import main as main2
-from diyims.queue_server import main
+from diyims.beacon import beacon_main
+from diyims.satisfy import satisfy_main
+from diyims.queue_server import queue_main
 from time import sleep
 import pytest
 
@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.mp
 # @pytest.mark.xdist_group(name="group1")
 def test_mss():
-    main()
+    queue_main()
 
 
 # @pytest.mark.skip(reason="native")
@@ -17,11 +17,11 @@ def test_mss():
 # @pytest.mark.xdist_group(name="group1")
 def test_mp1():
     sleep(15)
-    main1()
+    beacon_main()
 
 
 @pytest.mark.mp
 # @pytest.mark.xdist_group(name="group2")
 def test_mp2():
     sleep(15)
-    main2()
+    satisfy_main()

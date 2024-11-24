@@ -139,6 +139,8 @@ SELECT
 FROM
    peer_table
 
+where processing_status = "NP"
+
 
 -- name: select_want_list_entry_by_key^
 select peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type

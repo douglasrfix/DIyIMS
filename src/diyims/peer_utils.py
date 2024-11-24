@@ -30,51 +30,71 @@ from diyims.path_utils import (
 from diyims.error_classes import ApplicationNotInstalledError
 from datetime import datetime, timezone
 from sqlite3 import IntegrityError
-from rich import print
+from time import sleep
 
 from diyims.database_utils import insert_peer_row, refresh_peer_table_dict
 from diyims.general_utils import get_network_name
+from diyims.logger_utils import get_logger
 
 
-def get_providers():
+def capture_providers():
+    logger = get_logger("provider.log")
+    logger.info("Startup of Provider Capture.")
+
     url_dict = get_url_dict()
     path_dict = get_path_dict()
     network_name = get_network_name()
     connect_path = path_dict["db_file"]
     conn = sqlite3.connect(connect_path)
     key_arg = {"arg": network_name}
-    with requests.post(url_dict["find_providers"], params=key_arg, stream=True) as r:
-        r.raise_for_status()
-        found = 0
-        added = 0
-        for line in r.iter_lines():
-            if line:
-                decoded_line = line.decode("utf-8")
-                json_dict = json.loads(decoded_line)
-                if json_dict["Type"] == 4:
-                    json_string = str(
-                        json_dict["Responses"]
-                    )  # NOTE: dictionary of lists?
-                    json_string_len = len(json_string)
-                    python_string = json_string[1 : json_string_len - 1]
-                    python_dict = json.loads(python_string.replace("'", '"'))
-                    # print(python_dict["ID"], json_dict["Type"])
-                    # provider_dict[python_dict["ID"]] = python_dict["ID"]
+    i = 0
+    not_found = True
+    while i < 30 and not_found:
+        try:
+            with requests.post(
+                url_dict["find_providers"], params=key_arg, stream=True
+            ) as r:
+                r.raise_for_status()
+                not_found = False
+                process_providers(conn, logger, r)
+        except ConnectionError:
+            logger.exception()
+            sleep(1)  # NOTE: get wait and loop values from config
+            i += 1
+    return
 
-                    peer_table_dict = refresh_peer_table_dict()
-                    DTS = str(datetime.now(timezone.utc))
-                    peer_table_dict["peer_ID"] = python_dict["ID"]
-                    peer_table_dict["local_update_DTS"] = DTS
-                    peer_table_dict["processing_status"] = "NP"
-                    try:
-                        insert_peer_row(conn, peer_table_dict)
-                        conn.commit()
-                        added = added + 1
-                    except IntegrityError:
-                        pass
-                    found = found + 1
+
+def process_providers(conn, logger, r):
+    found = 0
+    added = 0
+    for line in r.iter_lines():
+        if line:
+            decoded_line = line.decode("utf-8")
+            json_dict = json.loads(decoded_line)
+            if json_dict["Type"] == 4:
+                json_string = str(json_dict["Responses"])  # NOTE: dictionary of lists?
+                json_string_len = len(json_string)
+                python_string = json_string[1 : json_string_len - 1]
+                python_dict = json.loads(python_string.replace("'", '"'))
+                # print(python_dict["ID"], json_dict["Type"])
+                # provider_dict[python_dict["ID"]] = python_dict["ID"]
+
+                peer_table_dict = refresh_peer_table_dict()
+                DTS = str(datetime.now(timezone.utc))
+                peer_table_dict["peer_ID"] = python_dict["ID"]
+                peer_table_dict["local_update_DTS"] = DTS
+                peer_table_dict["processing_status"] = "NP"
+                try:
+                    insert_peer_row(conn, peer_table_dict)
+                    conn.commit()
+                    added = added + 1
+                except IntegrityError:
+                    pass
+                found = found + 1
+
     conn.close()
-    print(f"{found} providers found and {added} providers added")
+    log_string = f"{found} providers found and {added} providers added"
+    logger.info(log_string)
     return
 
 
@@ -98,3 +118,8 @@ def get_peer_capture_dict():
     beacon_dict["number_of_periods"] = parser["Beacon"]["number_of_periods"]
 
     return beacon_dict
+
+
+# The following code will only run if the script is run directly
+if __name__ == "__main__":
+    capture_providers()

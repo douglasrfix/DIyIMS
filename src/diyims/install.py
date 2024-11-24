@@ -97,7 +97,7 @@ def install_main(drive_letter, force_install):
     parser["Paths"]["want_item_path"] = str(want_item_path)
     parser["Files"]["want_item_file"] = str(want_item_file)
     parser["IPFS"]["agent"] = json_dict["AgentVersion"]
-    parser["Beacon"]["minutes_to_run"] = "1"
+    parser["Beacon"]["shutdown_offset_hours"] = "1"
     parser["Beacon"]["long_period_seconds"] = "120"
     parser["Beacon"]["short_period_seconds"] = "60"
     parser["Beacon"]["number_of_periods"] = "5"

@@ -25,7 +25,7 @@ from diyims.py_version_dep import get_sql_str
 
 
 def process_peers(ten_second_intervals):
-    total_peers_captured = 0
+    #    total_peers_captured = 0
     total_peers_processed = 0
     total_CIDs_captured = 0
     for _ in range(ten_second_intervals):
@@ -34,11 +34,11 @@ def process_peers(ten_second_intervals):
         total_peers_processed = total_peers_processed + peers_processed
         total_CIDs_captured = total_CIDs_captured + total_CIDs_wanted
 
-    DTS = get_DTS()
-    sleep(5)  # sample frequency
-    print(
-        f"{total_peers_captured} peers captured {total_peers_processed} peers processed with {total_CIDs_captured} total CIDs found at {DTS}"
-    )
+        DTS = get_DTS()
+        sleep(10)  # sample frequency
+        print(
+            f" {peers_processed} peers processed with {total_CIDs_wanted} CIDs found at {DTS}"
+        )
     return
 
 
@@ -135,3 +135,8 @@ def process_want_list_item(conn, queries, peer_table_dict, level_zero_dict):
             CID_count = 1
 
     return CID_count
+
+
+# The following code will only run if the script is run directly
+if __name__ == "__main__":
+    process_peers()
