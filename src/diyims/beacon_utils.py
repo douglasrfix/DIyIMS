@@ -1,6 +1,6 @@
 import json
 import sqlite3
-import configparser
+
 import aiosql
 import requests
 import datetime
@@ -12,21 +12,17 @@ from diyims.general_utils import get_DTS
 from diyims.py_version_dep import get_sql_str
 from diyims.want_item_utils import refresh_want_item_dict
 from diyims.path_utils import get_path_dict, get_unique_item_file
-from diyims.error_classes import ApplicationNotInstalledError
-from diyims.path_utils import (
-    get_install_template_dict,
-)
 
 
 # NOTE: beacon purge both ipfs
-def create_beacon_CID(logger):
+def create_beacon_CID(logger, beacon_config_dict):
     url_dict = get_url_dict()
     path_dict = get_path_dict()
 
     sql_str = get_sql_str()
     queries = aiosql.from_str(sql_str, "sqlite3")
     connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(connect_path, timeout=60)
+    conn = sqlite3.connect(connect_path, timeout=int(beacon_config_dict["sql_timeout"]))
     conn.row_factory = sqlite3.Row
 
     header_row = queries.select_last_peer_table_entry_header(conn)
@@ -47,10 +43,12 @@ def create_beacon_CID(logger):
     add_params = {"only-hash": "true", "pin": "false"}
     i = 0
     not_found = True
-    while i < 30 and not_found:
+    while i < int(beacon_config_dict["connect_retries"]) and not_found:
         try:
-            with requests.Session().post(
-                url=url_dict["add"], params=add_params, files=add_files, timeout=30.15
+            with requests.post(
+                url=url_dict["add"],
+                params=add_params,
+                files=add_files,
             ) as r:
                 r.raise_for_status()
                 json_dict = json.loads(r.text)
@@ -62,11 +60,12 @@ def create_beacon_CID(logger):
 
         except requests.exceptions.ConnectionError:
             i += 1
-            logger.exception(f"Create loop iteration {i}")
-            sleep(1)  # NOTE: get wait and loop values from config
+            logger.exception(f"Create retry iteration {i}")
+            sleep(int(beacon_config_dict["connect_retry_delay"]))
+    return
 
 
-def flash_beacon(logger, beacon_CID):
+def flash_beacon(logger, beacon_config_dict, beacon_CID):
     url_dict = get_url_dict()
     get_arg = {
         "arg": beacon_CID,
@@ -74,7 +73,7 @@ def flash_beacon(logger, beacon_CID):
     }
     i = 0
     not_found = True
-    while i < 30 and not_found:
+    while i < int(beacon_config_dict["connect_retries"]) and not_found:
         try:
             logger.debug(f"Flash {beacon_CID} on ")
             with requests.Session().post(
@@ -85,19 +84,19 @@ def flash_beacon(logger, beacon_CID):
                 logger.debug("Flash off")
         except ConnectionError:
             i += 1
-            logger.exception(f"Flash loop iteration {i}")
-            sleep(1)  # NOTE: get wait and loop values from config
+            logger.exception(f"Flash retry iteration {i}")
+            sleep(int(beacon_config_dict["connect_retry_delay"]))
 
     return
 
 
-def satisfy_beacon(logger, want_item_file):
+def satisfy_beacon(logger, satisfy_config_dict, want_item_file):
     url_dict = get_url_dict()
     add_files = {"file": open(want_item_file, "rb")}
     add_params = {"only-hash": "false", "pin": "false"}
     i = 0
     not_found = True
-    while i < 30 and not_found:
+    while i < int(satisfy_config_dict["connect_retries"]) and not_found:
         try:
             with requests.post(
                 url=url_dict["add"], params=add_params, files=add_files
@@ -105,41 +104,17 @@ def satisfy_beacon(logger, want_item_file):
                 r.raise_for_status()
                 not_found = False
                 logger.debug(f"Satisfy {want_item_file}")
-        #            Path(want_item_file).unlink()      # NOTE: restore after testing
+            #    Path(want_item_file).unlink()
         except ConnectionError:
             i += 1
-            logger.exception(f"Satisfy loop iteration {i}")
-            sleep(1)  # NOTE: get wait and loop values from config
+            logger.exception(f"Satisfy retry iteration {i}")
+            sleep(int(satisfy_config_dict["connect_retry_delay"]))
 
     return
 
 
-def get_beacon_dict():
-    install_dict = get_install_template_dict()
-
-    config_file = Path().joinpath(install_dict["config_path"], "diyims.ini")
-    parser = configparser.ConfigParser()
-
-    try:
-        with open(config_file, "r") as configfile:
-            parser.read_file(configfile)
-
-    except FileNotFoundError:
-        raise ApplicationNotInstalledError(" ")
-
-    beacon_dict = {}
-    beacon_dict["shutdown_offset_hours"] = parser["Beacon"]["shutdown_offset_hours"]
-    beacon_dict["long_period_seconds"] = parser["Beacon"]["long_period_seconds"]
-    beacon_dict["short_period_seconds"] = parser["Beacon"]["short_period_seconds"]
-    beacon_dict["number_of_periods"] = parser["Beacon"]["number_of_periods"]
-
-    return beacon_dict
-
-
 def purge_want_items():
-    start_date = datetime.datetime.now() - datetime.timedelta(
-        days=30
-    )  # NOTE: get days values from config
+    start_date = datetime.datetime.now() - datetime.timedelta(days=30)
     end_date = datetime.datetime.now() - datetime.timedelta(days=1)
 
     path_dict = get_path_dict()
@@ -152,3 +127,4 @@ def purge_want_items():
         modified_date = datetime.datetime.fromtimestamp(modified_time)
         if modified_date >= start_date and modified_date <= end_date:
             Path(file).unlink()
+    return

@@ -9,6 +9,7 @@ import requests
 from diyims.error_classes import UnSupportedIPFSVersionError
 from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
+from diyims.config_utils import get_ipfs_config_dict
 
 
 def get_url_dict():
@@ -146,19 +147,21 @@ def force_purge():
 
 
 def wait_on_ipfs(logger):
+    ipfs_config_dict = get_ipfs_config_dict()
     url_dict = get_url_dict()
     i = 0
     not_found = True
     logger.debug("ipfs wait started.")
-    sleep(60)
+    sleep(int(ipfs_config_dict["connect_retry_delay"]))
     while i < 30 and not_found:
         try:
-            with requests.Session().post(url=url_dict["id"], timeout=30.15) as r:
+            with requests.post(url=url_dict["id"]) as r:
                 r.raise_for_status()
                 not_found = False
                 logger.debug("ipfs wait completed.")
         except requests.exceptions.ConnectionError:
-            logger.exception("wait on ipfs.")
-            sleep(60)  # NOTE: set sleep and loop values from config
             i += 1
+            logger.exception(f"wait on ipfs iteration {i}.")
+            sleep(int(ipfs_config_dict["connect_retry_delay"]))
+
     return

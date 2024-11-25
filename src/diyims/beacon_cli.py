@@ -1,6 +1,6 @@
 import typer
 from diyims.beacon_utils import purge_want_items
-from diyims.temp import scheduler_main
+from diyims.scheduler import scheduler_main
 
 app = typer.Typer(
     no_args_is_help=True, help="Execution of the Beacon function and subsets."

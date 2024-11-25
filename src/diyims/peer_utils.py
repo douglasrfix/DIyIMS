@@ -37,8 +37,7 @@ from diyims.general_utils import get_network_name
 from diyims.logger_utils import get_logger
 
 
-def capture_providers():
-    logger = get_logger("provider.log")
+def capture_providers(logger):
     logger.info("Startup of Provider Capture.")
 
     url_dict = get_url_dict()
@@ -56,15 +55,19 @@ def capture_providers():
             ) as r:
                 r.raise_for_status()
                 not_found = False
-                process_providers(conn, logger, r)
+                found, added = process_providers(conn, r)
         except ConnectionError:
             logger.exception()
             sleep(1)  # NOTE: get wait and loop values from config
             i += 1
+
+    log_string = f"{found} providers found and {added} providers added to peer table"
+    logger.info(log_string)
+    logger.info("Provider Capture complete.")
     return
 
 
-def process_providers(conn, logger, r):
+def process_providers(conn, r):
     found = 0
     added = 0
     for line in r.iter_lines():
@@ -93,9 +96,8 @@ def process_providers(conn, logger, r):
                 found = found + 1
 
     conn.close()
-    log_string = f"{found} providers found and {added} providers added"
-    logger.info(log_string)
-    return
+
+    return found, added
 
 
 def get_peer_capture_dict():
@@ -122,4 +124,5 @@ def get_peer_capture_dict():
 
 # The following code will only run if the script is run directly
 if __name__ == "__main__":
-    capture_providers()
+    logger = get_logger("provider.log")
+    capture_providers(logger)

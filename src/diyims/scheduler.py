@@ -38,14 +38,20 @@ from diyims.satisfy import satisfy_main
 from diyims.queue_server import queue_main
 from diyims.ipfs_utils import wait_on_ipfs
 from diyims.logger_utils import get_logger
+from diyims.config_utils import get_scheduler_config_dict
 
 
 def scheduler_main():
-    logger = get_logger("scheduler.log")
+    scheduler_config_dict = get_scheduler_config_dict()
+    logger = get_logger(scheduler_config_dict["log_file"])
     logger.info("Startup of Scheduler.")
     wait_on_ipfs(logger)
     logger.debug("Wait on ipfs completed.")
-    executors = {"default": ProcessPoolExecutor(max_workers=5)}
+    executors = {
+        "default": ProcessPoolExecutor(
+            max_workers=int(scheduler_config_dict["worker_pool"])
+        )
+    }
     scheduler = BackgroundScheduler(executors=executors)
     scheduler.start()
     logger.debug("Scheduler start() completed.")
@@ -58,7 +64,7 @@ def scheduler_main():
         max_instances=1,
         name="queue_main",
     )
-    sleep(15)
+    sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("queue_main added.")
     scheduler.add_job(
         beacon_main,
@@ -69,7 +75,7 @@ def scheduler_main():
         max_instances=1,
         name="beacon_main",
     )
-    sleep(15)
+    sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("beacon_main added.")
     scheduler.add_job(
         satisfy_main,
@@ -80,7 +86,7 @@ def scheduler_main():
         max_instances=1,
         name="satisfy_main",
     )
-    sleep(15)
+    sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("satisfy_main added.")
     logger.debug("Scheduler shutdown().")
     scheduler.shutdown()

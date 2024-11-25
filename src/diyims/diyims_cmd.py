@@ -13,7 +13,7 @@ from typing import Optional
 
 from diyims import install_cli
 from diyims import beacon_cli
-from diyims.temp import scheduler_main
+from diyims.scheduler import scheduler_main
 from diyims.ipfs_utils import force_purge
 from diyims.ipfs_utils import purge
 from diyims.peer_utils import capture_providers
