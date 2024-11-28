@@ -45,6 +45,15 @@ def create():
     except Error as e:
         conn.close()
         raise (CreateSchemaError(e))
+
+    try:
+        queries.set_pragma(conn)
+        print("DB PRAGMA set successfully.")
+
+    except Error as e:
+        conn.close()
+        raise (CreateSchemaError(e))
+
     conn.close()
     return
 
@@ -125,7 +134,8 @@ def init():  # NOTE: add wait on ipfs
     peer_table_dict["execution_platform"] = os_platform
     peer_table_dict["python_version"] = python_version
     peer_table_dict["IPFS_agent"] = IPFS_agent
-    peer_table_dict["processing_status"] = "LP"  # local peer
+    peer_table_dict["processing_status"] = "NA"
+    peer_table_dict["peer_type"] = "LP"  # local peer
 
     peer_file = path_dict["peer_file"]
     add_params = {"only-hash": "false", "pin": "true"}

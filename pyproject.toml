@@ -23,7 +23,7 @@ apscheduler = "^3.10.4"
 minversion = "6.0"
 addopts = [
     # "-m component",
-    # "-n 10",
+    "-n 10",
     # "--dist load",
     "-rA",
     "-vv",

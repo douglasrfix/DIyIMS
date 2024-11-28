@@ -54,7 +54,7 @@ def test_init_db():
     assert result.exit_code == 0
 
 
-# @pytest.mark.skip(reason="purge")
+@pytest.mark.skip(reason="purge")
 def test_ipfs_purge():
     """testing  initializing database with previous initialization"""
     command_string = "ipfs-purge"
@@ -63,7 +63,7 @@ def test_ipfs_purge():
     assert result.exit_code == 0
 
 
-# @pytest.mark.skip(reason="danger")
+@pytest.mark.skip(reason="danger")
 # @pytest.mark.setup
 def test_cli_l2_c_danger():
     """testing install into 'real path' not temporary test path process (--force option due to test environment being windows 11)

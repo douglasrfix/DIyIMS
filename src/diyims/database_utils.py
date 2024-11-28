@@ -11,6 +11,7 @@ def insert_peer_row(conn, peer_table_dict):
         conn,
         peer_table_dict["peer_ID"],
         peer_table_dict["IPNS_name"],
+        peer_table_dict["peer_type"],
         peer_table_dict["origin_update_DTS"],
         peer_table_dict["local_update_DTS"],
         peer_table_dict["execution_platform"],
@@ -27,6 +28,7 @@ def refresh_peer_table_dict():
     peer_table_dict = {}
     peer_table_dict["peer_ID"] = "null"
     peer_table_dict["IPNS_name"] = "null"
+    peer_table_dict["peer_type"] = "null"
     peer_table_dict["origin_update_DTS"] = "null"
     peer_table_dict["local_update_DTS"] = "null"
     peer_table_dict["execution_platform"] = "null"

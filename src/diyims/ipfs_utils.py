@@ -9,7 +9,6 @@ import requests
 from diyims.error_classes import UnSupportedIPFSVersionError
 from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
-from diyims.config_utils import get_ipfs_config_dict
 
 
 def get_url_dict():
@@ -91,6 +90,7 @@ def purge():
 
 def test_ipfs_version():
     url_dict = get_url_dict()
+
     with requests.post(url_dict["id"], stream=False) as r:
         r.raise_for_status()
         json_dict = json.loads(r.text)
@@ -147,8 +147,10 @@ def force_purge():
 
 
 def wait_on_ipfs(logger):
-    ipfs_config_dict = get_ipfs_config_dict()
     url_dict = get_url_dict()
+    from diyims.config_utils import get_ipfs_config_dict
+
+    ipfs_config_dict = get_ipfs_config_dict()
     i = 0
     not_found = True
     logger.debug("ipfs wait started.")

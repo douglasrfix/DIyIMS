@@ -8,15 +8,13 @@ need the if __name__ == "__main__":.
 """
 
 import typer
-from typing_extensions import Annotated
-from typing import Optional
 
 from diyims import install_cli
 from diyims import beacon_cli
 from diyims.scheduler import scheduler_main
 from diyims.ipfs_utils import force_purge
 from diyims.ipfs_utils import purge
-from diyims.peer_utils import capture_providers
+from diyims.peer_capture import peer_capture_main
 from diyims.capture_want_lists import process_peers
 from diyims.capture_utils import (
     capture_peer_stats,
@@ -66,26 +64,12 @@ def find_providers():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    capture_providers()
+    peer_capture_main()
 
 
 @app.command()
-def capture_want_lists(
-    ten_second_intervals: Annotated[
-        Optional[int],
-        typer.Option(
-            help="The drive letter to use if not the default eg 'C:', note the colon.",
-            show_default=True,
-            rich_help_panel="Install Options",
-        ),
-    ] = 60,
-):
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-    """
-    process_peers(ten_second_intervals)
+def capture_want_lists():
+    process_peers()
 
 
 @app.command()
@@ -119,7 +103,7 @@ def capture_bitswap_stats():
 
 
 @app.command()
-def temp_test():
+def scheduler_test():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error

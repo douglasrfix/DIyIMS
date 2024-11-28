@@ -105,6 +105,3 @@ def init_database():
     except UnSupportedIPFSVersionError as error:
         print(f"{error.value} is not supported")
         raise typer.Exit(code=2)
-
-
-# NOTE: add wait on ipfs

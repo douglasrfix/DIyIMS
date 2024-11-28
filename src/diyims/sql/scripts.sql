@@ -1,6 +1,5 @@
 
 -- name: create_schema#
--- #NOTE: pragma for wal
 CREATE TABLE "header_table" (
 	"version" TEXT,
 	"object_CID"	TEXT,
@@ -13,6 +12,7 @@ CREATE TABLE "header_table" (
 CREATE TABLE "peer_table" (
 	"peer_ID"	TEXT,
 	"IPNS_name"	TEXT,
+	"peer_type" TEXT,
 	"origin_update_DTS"	TEXT,
 	"local_update_DTS" TEXT,
 	"execution_platform"	TEXT,
@@ -38,10 +38,13 @@ CREATE TABLE "network_table" (
 	"network_name"	TEXT
 );
 
+-- name: set_pragma#
+PRAGMA journal_mode = WAL
+;
 -- name: insert_peer_row!
-insert into peer_table (peer_ID, IPNS_name, origin_update_DTS, local_update_DTS, execution_platform, python_version,
+insert into peer_table (peer_ID, IPNS_name, peer_type, origin_update_DTS, local_update_DTS, execution_platform, python_version,
 		IPFS_agent, processing_status, agent, version)
-values (:peer_ID, :IPNS_name, :origin_update_DTS, :local_update_DTS, :execution_platform, :python_version,
+values (:peer_ID, :IPNS_name, :peer_type, :origin_update_DTS, :local_update_DTS, :execution_platform, :python_version,
 		:IPFS_agent, :processing_status, :agent, :version);
 
 -- name: insert_header_row!
@@ -127,6 +130,7 @@ FROM
 SELECT
 	peer_ID,
 	IPNS_name,
+	peer_type,
    	origin_update_DTS,
 	local_update_DTS,
    	execution_platform,
@@ -139,7 +143,7 @@ SELECT
 FROM
    peer_table
 
-where processing_status = "NP"
+where peer_type = "NP"
 
 
 -- name: select_want_list_entry_by_key^

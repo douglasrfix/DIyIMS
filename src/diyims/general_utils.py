@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime, timezone
+from dateutil.parser import parse
 
 import aiosql
 
@@ -24,3 +25,11 @@ def get_DTS():  # NOTE: rename to dts utc
     DTS = str(datetime.now(timezone.utc))
 
     return DTS
+
+
+def get_shutdown_target(config_dict):
+    current_date = datetime.today()
+    shutdown_time = config_dict["shutdown_time"]
+    target_DT = parse(shutdown_time, default=current_date)
+
+    return target_DT

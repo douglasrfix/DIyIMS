@@ -1,5 +1,5 @@
 import typer
-from diyims.beacon_utils import purge_want_items
+from diyims.beacon import purge_want_items
 from diyims.scheduler import scheduler_main
 
 app = typer.Typer(

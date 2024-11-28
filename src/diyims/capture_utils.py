@@ -1,5 +1,5 @@
 """
-NOTE: Contains FINDPROVS speculation.
+Contains FINDPROVS speculation.
 
 It appears that the output of findprovs  returns an 'ID' value of null for 'Type' 4.
 'Type' 4 is one of several records(?) in the routing system.

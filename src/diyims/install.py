@@ -1,9 +1,8 @@
 import configparser
-import json
 import os
 from pathlib import Path
 
-import requests
+
 from rich import print
 
 from diyims.error_classes import (
@@ -12,9 +11,10 @@ from diyims.error_classes import (
     UnSupportedPlatformError,
     UnTestedPlatformError,
 )
-from diyims.ipfs_utils import get_url_dict
+
 from diyims.path_utils import get_install_template_dict
 from diyims.platform_utils import test_os_platform
+from diyims.config_utils import config_install
 
 
 def install_main(drive_letter, force_install):
@@ -76,15 +76,9 @@ def install_main(drive_letter, force_install):
     peer_file = Path(peer_path).joinpath("peer_table.json")
     want_item_file = Path(want_item_path).joinpath("want_item.json")
 
-    url_dict = get_url_dict()
-
-    with requests.post(url_dict["id"], stream=False) as r:  # NOTE: add wait on ipfs
-        json_dict = json.loads(r.text)
-
     parser = configparser.ConfigParser()
     parser["Paths"] = {}
     parser["Files"] = {}
-    parser["IPFS"] = {}
     parser["Paths"]["config_path"] = str(config_path)
     parser["Files"]["config_file"] = str(config_file)
     parser["Paths"]["db_path"] = str(db_path)
@@ -96,10 +90,11 @@ def install_main(drive_letter, force_install):
     parser["Files"]["peer_file"] = str(peer_file)
     parser["Paths"]["want_item_path"] = str(want_item_path)
     parser["Files"]["want_item_file"] = str(want_item_file)
-    parser["IPFS"]["agent"] = json_dict["AgentVersion"]
 
     with open(config_file, "w") as configfile:
         parser.write(configfile)
     print("Installation Complete")
+
+    config_install()
 
     return 0

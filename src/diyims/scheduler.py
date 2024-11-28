@@ -33,20 +33,25 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ProcessPoolExecutor
 from time import sleep
 
-from diyims.beacon import beacon_main
-from diyims.satisfy import satisfy_main
+from diyims.beacon import beacon_main, satisfy_main
 from diyims.queue_server import queue_main
+from diyims.peer_capture import peer_capture_main
 from diyims.ipfs_utils import wait_on_ipfs
 from diyims.logger_utils import get_logger
 from diyims.config_utils import get_scheduler_config_dict
+from diyims.capture_want_lists import process_peers
 
 
 def scheduler_main():
     scheduler_config_dict = get_scheduler_config_dict()
     logger = get_logger(scheduler_config_dict["log_file"])
-    logger.info("Startup of Scheduler.")
     wait_on_ipfs(logger)
     logger.debug("Wait on ipfs completed.")
+    wait_seconds = int(scheduler_config_dict["wait_before_startup"])
+    logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
+    sleep(wait_seconds)
+    logger.info("Startup of Scheduler.")
+
     executors = {
         "default": ProcessPoolExecutor(
             max_workers=int(scheduler_config_dict["worker_pool"])
@@ -55,6 +60,7 @@ def scheduler_main():
     scheduler = BackgroundScheduler(executors=executors)
     scheduler.start()
     logger.debug("Scheduler start() completed.")
+
     scheduler.add_job(
         queue_main,
         "cron",
@@ -66,6 +72,7 @@ def scheduler_main():
     )
     sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("queue_main added.")
+
     scheduler.add_job(
         beacon_main,
         "cron",
@@ -77,6 +84,7 @@ def scheduler_main():
     )
     sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("beacon_main added.")
+
     scheduler.add_job(
         satisfy_main,
         "cron",
@@ -88,6 +96,32 @@ def scheduler_main():
     )
     sleep(int(scheduler_config_dict["submit_delay"]))
     logger.debug("satisfy_main added.")
+
+    scheduler.add_job(
+        peer_capture_main,
+        "cron",
+        hour="0-22",
+        minute="*",
+        second="*",
+        max_instances=1,
+        name="peer_capture_main",
+    )
+    sleep(int(scheduler_config_dict["submit_delay"]))
+    logger.debug("peer_capture_main added.")
+
+    scheduler.add_job(
+        process_peers,
+        "cron",
+        hour="0-22",
+        minute="*",
+        second="*",
+        max_instances=1,
+        name="process_peers",
+    )
+    sleep(int(scheduler_config_dict["submit_delay"]))
+    logger.debug("process_peers added.")
+
+    sleep(int(scheduler_config_dict["shutdown_delay"]))
     logger.debug("Scheduler shutdown().")
     scheduler.shutdown()
     logger.info("Scheduler shutdown() completed.")
