@@ -103,7 +103,7 @@ def capture_bitswap_stats():
 
 
 @app.command()
-def scheduler_test():
+def run_scheduler():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
