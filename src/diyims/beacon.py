@@ -12,7 +12,6 @@ import requests
 from datetime import datetime, timedelta, date
 from time import sleep
 from pathlib import Path
-from multiprocessing.managers import BaseManager
 
 from diyims.ipfs_utils import get_url_dict, wait_on_ipfs
 from diyims.general_utils import get_DTS, get_shutdown_target
@@ -23,7 +22,7 @@ from diyims.config_utils import get_beacon_config_dict, get_satisfy_config_dict
 from diyims.logger_utils import get_logger
 
 
-def beacon_main():
+def beacon_main(queue1, queue2):
     beacon_config_dict = get_beacon_config_dict()
     logger = get_logger(beacon_config_dict["log_file"])
     wait_on_ipfs(logger)
@@ -33,21 +32,16 @@ def beacon_main():
     sleep(wait_seconds)
     logger.info("Startup of Beacon.")
     target_DT = get_shutdown_target(beacon_config_dict)
-    logger.info(f"Shutdown target {target_DT}")
-
     purge_want_items()
     logger.info("Purge want item files complete")
-
-    manager = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
-    manager.register("get_queue1")
-    manager.register("get_queue2")
-    manager.connect()
-    queue1 = manager.get_queue1()
-    queue2 = manager.get_queue2()
-
+    target_DT = get_shutdown_target(beacon_config_dict)
     current_DT = datetime.now()
+
+    max_intervals = int(beacon_config_dict["max_intervals"])
+    logger.info(f"Shutdown target {target_DT} or {max_intervals} intervals.")
+    beacon_interval = 0
     satisfy_dict = {}
-    while target_DT > current_DT:
+    while target_DT > current_DT and beacon_interval < max_intervals:
         for _ in range(int(beacon_config_dict["number_of_periods"])):
             beacon_CID, want_item_file = create_beacon_CID(logger, beacon_config_dict)
             satisfy_dict["status"] = "run"
@@ -69,7 +63,7 @@ def beacon_main():
             logger.debug(message)
 
             flash_beacon(logger, beacon_config_dict, beacon_CID)
-
+        beacon_interval += 1
         current_DT = datetime.now()
     satisfy_dict["status"] = "shutdown"
     queue1.put(satisfy_dict)
@@ -154,7 +148,7 @@ def flash_beacon(logger, beacon_config_dict, beacon_CID):
     return
 
 
-def satisfy_main():
+def satisfy_main(queue1, queue2):
     satisfy_config_dict = get_satisfy_config_dict()
     logger = get_logger(satisfy_config_dict["log_file"])
     wait_on_ipfs(logger)
@@ -164,13 +158,6 @@ def satisfy_main():
     sleep(wait_seconds)
     logger.info("Startup of Satisfy.")
     logger.info("Shutdown signal comes from Beacon.")
-
-    manager = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
-    manager.register("get_queue2")
-    manager.register("get_queue1")
-    manager.connect()
-    queue1 = manager.get_queue1()
-    queue2 = manager.get_queue2()
 
     satisfy_dict = queue1.get()
 
@@ -225,7 +212,3 @@ def purge_want_items():
         if modified_date >= start_date and modified_date <= end_date:
             Path(file).unlink()  # NOTE: failing, need to delay for >
     return
-
-
-if __name__ == "__main__":
-    beacon_main()

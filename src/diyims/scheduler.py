@@ -1,48 +1,24 @@
-"""
-Demonstrates how to use the background scheduler to schedule a job that executes on 3 second
-intervals.
-
-Parameters:
-
-year (int|str)              - 4-digit year
-month (int|str)             - month (1-12)
-day (int|str)               - day of month (1-31)
-week (int|str)              - ISO week (1-53)
-day_of_week (int|str)       - number or name of weekday (0-6 or mon,tue,wed,thu,fri,sat,sun)
-hour (int|str)              - hour (0-23)
-minute (int|str)            - minute (0-59)
-second (int|str)            - second (0-59)
-start_date (datetime|str)   - earliest possible date/time to trigger on (inclusive)
-end_date (datetime|str)     - latest possible date/time to trigger on (inclusive)
-timezone (datetime.tzinfo|str) - time zone to use for the date/time calculations (defaults to scheduler timezone)
-jitter (int|None)           - delay the job execution by jitter seconds at most
-
-Expression  Field   Description
-
-*           any     Fire on every value
-*/a         any     Fire every a values, starting from the minimum
-a-b         any     Fire on any value within the a-b range (a must be smaller than b)
-a-b/c       any     Fire every c values within the a-b range
-xth y       day     Fire on the x -th occurrence of weekday y within the month
-last x      day     Fire on the last occurrence of weekday x within the month
-last        day     Fire on the last day within the month
-x,y,z       any     Fire on any matching expression; can combine any number of any of the above expressions
-"""
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.executors.pool import ProcessPoolExecutor
 from time import sleep
 
 from diyims.beacon import beacon_main, satisfy_main
-from diyims.queue_server import queue_main
-from diyims.peer_capture import peer_capture_main
+from diyims.peer_capture import (
+    capture_providers_main,
+    capture_bitswap_main,
+    capture_swarm_main,
+)
 from diyims.ipfs_utils import wait_on_ipfs
 from diyims.logger_utils import get_logger
 from diyims.config_utils import get_scheduler_config_dict
-from diyims.capture_want_lists import process_peers
+
+# from diyims.capture_want_lists import process_peers
+from multiprocessing import Process, set_start_method, freeze_support
+from multiprocessing import Queue
 
 
 def scheduler_main():
+    if __name__ != "__main__":
+        freeze_support()
+        set_start_method("spawn")
     scheduler_config_dict = get_scheduler_config_dict()
     logger = get_logger(scheduler_config_dict["log_file"])
     wait_on_ipfs(logger)
@@ -52,81 +28,45 @@ def scheduler_main():
     sleep(wait_seconds)
     logger.info("Startup of Scheduler.")
 
-    executors = {
-        "default": ProcessPoolExecutor(
-            max_workers=int(scheduler_config_dict["worker_pool"])
-        )
-    }
-    scheduler = BackgroundScheduler(executors=executors)
-    scheduler.start()
-    logger.debug("Scheduler start() completed.")
+    queue1 = Queue()
+    queue2 = Queue()
 
-    scheduler.add_job(
-        queue_main,
-        "cron",
-        hour="0-22",
-        minute="*",
-        second="*",
-        max_instances=1,
-        name="queue_main",
-    )
+    beacon_main_process = Process(target=beacon_main, args=(queue1, queue2))
     sleep(int(scheduler_config_dict["submit_delay"]))
-    logger.debug("queue_main added.")
+    beacon_main_process.start()
+    logger.debug("beacon_main started.")
 
-    scheduler.add_job(
-        beacon_main,
-        "cron",
-        hour="0-22",
-        minute="*",
-        second="*",
-        max_instances=1,
-        name="beacon_main",
-    )
+    satisfy_main_process = Process(target=satisfy_main, args=(queue1, queue2))
     sleep(int(scheduler_config_dict["submit_delay"]))
-    logger.debug("beacon_main added.")
+    satisfy_main_process.start()
+    logger.debug("satisfy_main started.")
 
-    scheduler.add_job(
-        satisfy_main,
-        "cron",
-        hour="0-22",
-        minute="*",
-        second="*",
-        max_instances=1,
-        name="satisfy_main",
-    )
+    capture_providers_main_process = Process(target=capture_providers_main)
     sleep(int(scheduler_config_dict["submit_delay"]))
-    logger.debug("satisfy_main added.")
+    capture_providers_main_process.start()
+    logger.debug("capture_providers_main started.")
 
-    scheduler.add_job(
-        peer_capture_main,
-        "cron",
-        hour="0-22",
-        minute="*",
-        second="*",
-        max_instances=1,
-        name="peer_capture_main",
-    )
+    capture_bitswap_main_process = Process(target=capture_bitswap_main)
     sleep(int(scheduler_config_dict["submit_delay"]))
-    logger.debug("peer_capture_main added.")
+    capture_bitswap_main_process.start()
+    logger.debug("capture_bitswap_main started.")
 
-    scheduler.add_job(
-        process_peers,
-        "cron",
-        hour="0-22",
-        minute="*",
-        second="*",
-        max_instances=1,
-        name="process_peers",
-    )
+    capture_swarm_main_process = Process(target=capture_swarm_main)
     sleep(int(scheduler_config_dict["submit_delay"]))
-    logger.debug("process_peers added.")
+    capture_swarm_main_process.start()
+    logger.debug("capture_swarm_main started.")
 
-    sleep(int(scheduler_config_dict["shutdown_delay"]))
-    logger.debug("Scheduler shutdown().")
-    scheduler.shutdown()
-    logger.info("Scheduler shutdown() completed.")
+    beacon_main_process.join()
+    satisfy_main_process.join()
+    capture_providers_main_process.join()
+    capture_bitswap_main_process.join()
+    capture_swarm_main_process.join()
+    logger.info("Normal shutdown of Scheduler.")
+
     return
 
 
 if __name__ == "__main__":
+    freeze_support()
+    set_start_method("spawn")
     scheduler_main()

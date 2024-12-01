@@ -1,6 +1,10 @@
 from diyims.beacon import beacon_main, satisfy_main
 from diyims.queue_server import queue_main
-from diyims.peer_capture import peer_capture_main
+from diyims.peer_capture import (
+    capture_providers_main,
+    capture_bitswap_main,
+    capture_swarm_main,
+)
 from diyims.capture_want_lists import process_peers
 import pytest
 
@@ -27,8 +31,20 @@ def test_satisfy():
 
 @pytest.mark.mp
 # @pytest.mark.xdist_group(name="group2")
-def test_peer_capture():
-    peer_capture_main()
+def test_capture_providers():
+    capture_providers_main()
+
+
+@pytest.mark.mp
+# @pytest.mark.xdist_group(name="group2")
+def test_capture_bitswap():
+    capture_bitswap_main()
+
+
+@pytest.mark.mp
+# @pytest.mark.xdist_group(name="group2")
+def test_capture_swarm():
+    capture_swarm_main()
 
 
 @pytest.mark.mp

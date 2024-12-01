@@ -9,9 +9,9 @@ runner = CliRunner()
 
 
 @pytest.mark.component
-def test_find_providers():
+def test_capture_providers():
     """testing find_providers with native windows install"""
-    command_string = "find-providers"
+    command_string = "capture-providers"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
@@ -27,27 +27,18 @@ def test_capture_want_lists():
 
 
 @pytest.mark.component
-def test_want_item_wait():
+def test_capture_bitswap_peers():
     """testing find_providers with native windows install"""
-    command_string = "wait-on-want-item"
+    command_string = "capture-bitswap-peers"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0
 
 
 @pytest.mark.component
-def test_remote_peer_stats():
+def test_capture_swarm_peers():
     """testing find_providers with native windows install"""
-    command_string = "capture-remote-peer-stats"
-    result = runner.invoke(app, shlex.split(command_string))
-    print(result.stdout.rstrip())
-    assert result.exit_code == 0
-
-
-@pytest.mark.component
-def test_want_list_swarm():
-    """testing find_providers with native windows install"""
-    command_string = "want-list-swarm"
+    command_string = "capture-swarm-peers"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

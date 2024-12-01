@@ -26,7 +26,7 @@ from diyims.logger_utils import get_logger
 from diyims.config_utils import get_want_list_config_dict
 
 
-def process_peers():
+def capture_peer_want_lists(runtime_peer_type):
     want_list_config_dict = get_want_list_config_dict()
     logger = get_logger(want_list_config_dict["log_file"])
     wait_on_ipfs(logger)
@@ -35,33 +35,41 @@ def process_peers():
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
     logger.info("Startup of Want List Capture.")
-
     target_DT = get_shutdown_target(want_list_config_dict)
     current_DT = datetime.now()
-    logger.info(f"Shutdown target {target_DT}")
-    sampling_complete = False
-    while target_DT > current_DT and sampling_complete is False:
-        total_peers_processed = 0
-        total_CIDs_captured = 0
-        for _ in range(int(want_list_config_dict["number_of_samples"])):
-            peers_processed, total_CIDs_wanted = capture_want_list_for_selected_peers(
-                logger, want_list_config_dict
+    max_intervals = int(want_list_config_dict["max_intervals"])
+    number_of_samples = int(want_list_config_dict["number_of_samples"])
+    seconds_per_sample = 60 // int(want_list_config_dict["samples_per_minute"])
+    total_seconds = number_of_samples * seconds_per_sample
+    logger.info(
+        f"Shutdown target {target_DT} or {max_intervals} intervals of {total_seconds} seconds."
+    )
+    provider_interval = 0
+    total_peers_processed = 0
+    total_CIDs_captured = 0
+
+    while target_DT > current_DT and provider_interval < max_intervals:
+        i = 0
+        while i < number_of_samples:
+            peers_processed, total_CIDs_wanted = capture_want_lists_for_peers(
+                logger, want_list_config_dict, runtime_peer_type
             )
             total_peers_processed = total_peers_processed + peers_processed
             total_CIDs_captured = total_CIDs_captured + total_CIDs_wanted
-            wait_seconds = 60 // int(want_list_config_dict["samples_per_minute"])
-
+            wait_seconds = seconds_per_sample
+            i += 1
             sleep(wait_seconds)
 
         log_string = f"{total_peers_processed} NP peers processed with {total_CIDs_wanted} CIDs found."
         logger.debug(log_string)
-        sampling_complete = True
-        logger.info("Sampling complete.")
+        provider_interval += 1
+        current_DT = datetime.now()
+
     logger.info("Normal shutdown of Want List Capture.")
     return
 
 
-def capture_want_list_for_selected_peers(logger, want_list_config_dict):
+def capture_want_lists_for_peers(logger, want_list_config_dict, runtime_peer_type):
     path_dict = get_path_dict()
     sql_str = get_sql_str()
     connect_path = path_dict["db_file"]
@@ -73,12 +81,14 @@ def capture_want_list_for_selected_peers(logger, want_list_config_dict):
         connect_path, timeout=int(want_list_config_dict["sql_timeout"])
     ) as conn:
         conn.row_factory = sqlite3.Row
-        with queries.select_all_peers_cursor(conn) as rows_of_peers:
+        with queries.select_all_providers_cursor(
+            conn, runtime_peer_type
+        ) as rows_of_peers:
             for peer in rows_of_peers:
                 peer_table_dict = refresh_peer_table_dict()
                 peer_table_dict["peer_ID"] = peer["peer_ID"]
                 peer_table_dict["processing_status"] = peer["processing_status"]
-                CIDs_wanted = capture_peer_want_list(
+                CIDs_wanted = capture_peer_want_list_by_id(
                     logger, want_list_config_dict, conn, queries, peer_table_dict
                 )
                 peers_processed += 1
@@ -91,13 +101,9 @@ def capture_want_list_for_selected_peers(logger, want_list_config_dict):
     return peers_processed, total_CIDs_wanted
 
 
-def capture_peer_want_list(
+def capture_peer_want_list_by_id(
     logger, want_list_config_dict, conn, queries, peer_table_dict
 ):
-    """
-    given a peerID, bitswap returns a dictionary of lists of a dictionary of lists
-    in a single block of text
-    """
     url_dict = get_url_dict()
     key_arg = {"peer": peer_table_dict["peer_ID"]}
     i = 0
@@ -111,7 +117,7 @@ def capture_peer_want_list(
                 r.raise_for_status()
 
                 level_zero_dict = json.loads(r.text)
-                CID_count = CID_count + process_want_list_item(
+                CID_count = CID_count + decode_want_list_structure(
                     conn, queries, peer_table_dict, level_zero_dict
                 )
                 not_found = False
@@ -123,7 +129,12 @@ def capture_peer_want_list(
     return CID_count
 
 
-def process_want_list_item(conn, queries, peer_table_dict, level_zero_dict):
+def decode_want_list_structure(conn, queries, peer_table_dict, level_zero_dict):
+    """
+    given a peerID, bitswap returns a dictionary of lists of a dictionary of lists
+    in a single block of text
+    """
+
     CID_count = 0
     level_one_list = level_zero_dict[
         "Keys"
@@ -160,6 +171,5 @@ def process_want_list_item(conn, queries, peer_table_dict, level_zero_dict):
     return CID_count
 
 
-# The following code will only run if the script is run directly
 if __name__ == "__main__":
-    process_peers()
+    capture_peer_want_lists("NP")

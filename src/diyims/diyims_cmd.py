@@ -14,17 +14,12 @@ from diyims import beacon_cli
 from diyims.scheduler import scheduler_main
 from diyims.ipfs_utils import force_purge
 from diyims.ipfs_utils import purge
-from diyims.peer_capture import peer_capture_main
+from diyims.peer_capture import (
+    capture_providers_main,
+    capture_bitswap_main,
+    capture_swarm_main,
+)
 from diyims.capture_want_lists import process_peers
-from diyims.capture_utils import (
-    capture_peer_stats,
-)
-from diyims.capture_utils import (
-    get_swarm_peers,
-)
-from diyims.capture_utils import (
-    capture_bitswap_peers,
-)
 
 
 app = typer.Typer(
@@ -58,13 +53,13 @@ def ipfs_purge():
 
 
 @app.command()
-def find_providers():
+def capture_providers():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    peer_capture_main()
+    capture_providers_main()
 
 
 @app.command()
@@ -73,33 +68,23 @@ def capture_want_lists():
 
 
 @app.command()
-def capture_remote_peer_stats():
+def capture_swarm_peers():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    capture_peer_stats()
+    capture_swarm_main()
 
 
 @app.command()
-def capture_swarm_stats():
+def capture_bitswap_peers():
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    get_swarm_peers()
-
-
-@app.command()
-def capture_bitswap_stats():
-    """Populates the Network_Peers table with a single entry to reflect this
-    Network Node.
-    If a pre-existing installation exists it will simply return with an error
-    message
-    """
-    capture_bitswap_peers()
+    capture_bitswap_main()
 
 
 @app.command()

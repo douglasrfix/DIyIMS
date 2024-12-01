@@ -126,7 +126,7 @@ FROM
 
 ;
 
--- name: select_all_peers
+-- name: select_all_providers
 SELECT
 	peer_ID,
 	IPNS_name,
@@ -143,7 +143,7 @@ SELECT
 FROM
    peer_table
 
-where peer_type = "NP"
+where peer_type = :peer_type
 
 
 -- name: select_want_list_entry_by_key^

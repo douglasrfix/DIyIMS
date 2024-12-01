@@ -11,16 +11,21 @@ from diyims.path_utils import (
 
 
 def config_install():
+    get_logger_config_dict()
+    get_ipfs_config_dict()
+    get_scheduler_config_dict()
+    get_queue_config_dict()
     get_beacon_config_dict()
     get_satisfy_config_dict()
-    get_queue_config_dict()
-    get_scheduler_config_dict()
-    get_ipfs_config_dict()
-    get_peer_capture_config_dict()
-    get_logger_config_dict()
+    get_capture_providers_config_dict()
+    get_capture_bitswap_config_dict()
+    get_capture_swarm_config_dict()
     get_want_list_config_dict()
 
     return
+
+
+# NOTE: add number of intervals to the shutdown criteria
 
 
 def get_beacon_config_dict():
@@ -49,6 +54,7 @@ def get_beacon_config_dict():
         beacon_config_dict["wait_before_startup"] = parser["Beacon"][
             "wait_before_startup"
         ]
+        beacon_config_dict["max_intervals"] = parser["Beacon"]["max_intervals"]
         beacon_config_dict["shutdown_time"] = parser["Beacon"]["shutdown_time"]
         beacon_config_dict["log_file"] = parser["Beacon"]["log_file"]
 
@@ -63,6 +69,7 @@ def get_beacon_config_dict():
         parser["Beacon"]["number_of_periods"] = "5"
         parser["Beacon"]["sql_timeout"] = "60"
         parser["Beacon"]["wait_before_startup"] = "15"
+        parser["Beacon"]["max_intervals"] = "1440"
         parser["Beacon"]["shutdown_time"] = "22:0:0"
         parser["Beacon"]["log_file"] = "beacon.log"
         parser["Beacon"]["connect_retries"] = "30"
@@ -82,6 +89,7 @@ def get_beacon_config_dict():
         beacon_config_dict["wait_before_startup"] = parser["Beacon"][
             "wait_before_startup"
         ]
+        beacon_config_dict["max_intervals"] = parser["Beacon"]["max_intervals"]
         beacon_config_dict["shutdown_time"] = parser["Beacon"]["shutdown_time"]
         beacon_config_dict["log_file"] = parser["Beacon"]["log_file"]
 
@@ -270,7 +278,7 @@ def get_ipfs_config_dict():
     return ipfs_config_dict
 
 
-def get_peer_capture_config_dict():
+def get_capture_providers_config_dict():
     install_dict = get_install_template_dict()
 
     config_file = Path().joinpath(install_dict["config_path"], "diyims.ini")
@@ -284,58 +292,75 @@ def get_peer_capture_config_dict():
         raise ApplicationNotInstalledError(" ")
 
     try:
-        peer_capture_config_dict = {}
-        peer_capture_config_dict["capture_interval_delay"] = parser["Peer_Capture"][
-            "capture_interval_delay"
+        capture_providers_config_dict = {}
+        capture_providers_config_dict["capture_interval_delay"] = parser[
+            "Capture_Providers"
+        ]["capture_interval_delay"]
+        capture_providers_config_dict["sql_timeout"] = parser["Capture_Providers"][
+            "sql_timeout"
         ]
-        peer_capture_config_dict["sql_timeout"] = parser["Peer_Capture"]["sql_timeout"]
-        peer_capture_config_dict["wait_before_startup"] = parser["Peer_Capture"][
-            "wait_before_startup"
+        capture_providers_config_dict["wait_before_startup"] = parser[
+            "Capture_Providers"
+        ]["wait_before_startup"]
+        capture_providers_config_dict["max_intervals"] = parser["Capture_Providers"][
+            "max_intervals"
         ]
-        peer_capture_config_dict["shutdown_time"] = parser["Peer_Capture"][
+        capture_providers_config_dict["shutdown_time"] = parser["Capture_Providers"][
             "shutdown_time"
         ]
-        peer_capture_config_dict["log_file"] = parser["Peer_Capture"]["log_file"]
-        peer_capture_config_dict["connect_retries"] = parser["Peer_Capture"][
+        capture_providers_config_dict["log_file"] = parser["Capture_Providers"][
+            "log_file"
+        ]
+        capture_providers_config_dict["connect_retries"] = parser["Capture_Providers"][
             "connect_retries"
         ]
-        peer_capture_config_dict["connect_retry_delay"] = parser["Peer_Capture"][
-            "connect_retry_delay"
-        ]
+        capture_providers_config_dict["connect_retry_delay"] = parser[
+            "Capture_Providers"
+        ]["connect_retry_delay"]
 
     except KeyError:
-        parser["Peer_Capture"] = {}
-        parser["Peer_Capture"]["capture_interval_delay"] = "600"
-        parser["Peer_Capture"]["sql_timeout"] = "60"
-        parser["Peer_Capture"]["wait_before_startup"] = "0"
-        parser["Peer_Capture"]["shutdown_time"] = "23:0:0"
-        parser["Peer_Capture"]["log_file"] = "peer_capture.log"
-        parser["Peer_Capture"]["connect_retries"] = "30"
-        parser["Peer_Capture"]["connect_retry_delay"] = "30"
+        parser["Capture_Providers"] = {}
+
+        parser["Capture_Providers"]["capture_interval_delay"] = "600"
+        parser["Capture_Providers"]["sql_timeout"] = "60"
+        parser["Capture_Providers"]["wait_before_startup"] = "60"
+        parser["Capture_Providers"]["max_intervals"] = "1440"
+        parser["Capture_Providers"]["shutdown_time"] = "22:0:0"
+        parser["Capture_Providers"]["log_file"] = "capture_providers.log"
+        parser["Capture_Providers"]["connect_retries"] = "30"
+        parser["Capture_Providers"]["connect_retry_delay"] = "30"
 
         with open(config_file, "w") as configfile:
             parser.write(configfile)
 
-        peer_capture_config_dict = {}
-        peer_capture_config_dict["capture_interval_delay"] = parser["Peer_Capture"][
-            "capture_interval_delay"
+        capture_providers_config_dict = {}
+
+        capture_providers_config_dict["capture_interval_delay"] = parser[
+            "Capture_Providers"
+        ]["capture_interval_delay"]
+        capture_providers_config_dict["sql_timeout"] = parser["Capture_Providers"][
+            "sql_timeout"
         ]
-        peer_capture_config_dict["sql_timeout"] = parser["Peer_Capture"]["sql_timeout"]
-        peer_capture_config_dict["wait_before_startup"] = parser["Peer_Capture"][
-            "wait_before_startup"
+        capture_providers_config_dict["wait_before_startup"] = parser[
+            "Capture_Providers"
+        ]["wait_before_startup"]
+        capture_providers_config_dict["max_intervals"] = parser["Capture_Providers"][
+            "max_intervals"
         ]
-        peer_capture_config_dict["shutdown_time"] = parser["Peer_Capture"][
+        capture_providers_config_dict["shutdown_time"] = parser["Capture_Providers"][
             "shutdown_time"
         ]
-        peer_capture_config_dict["log_file"] = parser["Peer_Capture"]["log_file"]
-        peer_capture_config_dict["connect_retries"] = parser["Peer_Capture"][
+        capture_providers_config_dict["log_file"] = parser["Capture_Providers"][
+            "log_file"
+        ]
+        capture_providers_config_dict["connect_retries"] = parser["Capture_Providers"][
             "connect_retries"
         ]
-        peer_capture_config_dict["connect_retry_delay"] = parser["Peer_Capture"][
-            "connect_retry_delay"
-        ]
+        capture_providers_config_dict["connect_retry_delay"] = parser[
+            "Capture_Providers"
+        ]["connect_retry_delay"]
 
-    return peer_capture_config_dict
+    return capture_providers_config_dict
 
 
 def get_logger_config_dict():
@@ -399,6 +424,7 @@ def get_want_list_config_dict():
         want_list_config_dict["wait_before_startup"] = parser["Want_List"][
             "wait_before_startup"
         ]
+        want_list_config_dict["max_intervals"] = parser["Want_List"]["max_intervals"]
         want_list_config_dict["shutdown_time"] = parser["Want_List"]["shutdown_time"]
         want_list_config_dict["log_file"] = parser["Want_List"]["log_file"]
         want_list_config_dict["connect_retries"] = parser["Want_List"][
@@ -410,11 +436,15 @@ def get_want_list_config_dict():
 
     except KeyError:
         parser["Want_List"] = {}
+        parser["Want_List"]["swarm_peer"] = "SP"
+        parser["Want_List"]["bitswap_peer"] = "BP"
+        parser["Want_List"]["provider_peer"] = "NP"
         parser["Want_List"]["samples_per_minute"] = "6"
-        parser["Want_List"]["number_of_samples"] = "10"
+        parser["Want_List"]["number_of_samples"] = ""
         parser["Want_List"]["sql_timeout"] = "60"
-        parser["Want_List"]["wait_before_startup"] = "0"
-        parser["Want_List"]["shutdown_time"] = "23:0:0"
+        parser["Want_List"]["wait_before_startup"] = "60"
+        parser["Want_List"]["max_intervals"] = "1440"
+        parser["Want_List"]["shutdown_time"] = "22:0:0"
         parser["Want_List"]["log_file"] = "want_list.log"
         parser["Want_List"]["connect_retries"] = "30"
         parser["Want_List"]["connect_retry_delay"] = "30"
@@ -433,6 +463,7 @@ def get_want_list_config_dict():
         want_list_config_dict["wait_before_startup"] = parser["Want_List"][
             "wait_before_startup"
         ]
+        want_list_config_dict["max_intervals"] = parser["Want_List"]["max_intervals"]
         want_list_config_dict["shutdown_time"] = parser["Want_List"]["shutdown_time"]
         want_list_config_dict["log_file"] = parser["Want_List"]["log_file"]
         want_list_config_dict["connect_retries"] = parser["Want_List"][
@@ -443,3 +474,161 @@ def get_want_list_config_dict():
         ]
 
     return want_list_config_dict
+
+
+def get_capture_bitswap_config_dict():
+    install_dict = get_install_template_dict()
+
+    config_file = Path().joinpath(install_dict["config_path"], "diyims.ini")
+    parser = configparser.ConfigParser()
+
+    try:
+        with open(config_file, "r") as configfile:
+            parser.read_file(configfile)
+
+    except FileNotFoundError:
+        raise ApplicationNotInstalledError(" ")
+
+    try:
+        capture_bitswap_config_dict = {}
+        capture_bitswap_config_dict["capture_interval_delay"] = parser[
+            "Capture_Bitswap"
+        ]["capture_interval_delay"]
+        capture_bitswap_config_dict["sql_timeout"] = parser["Capture_Bitswap"][
+            "sql_timeout"
+        ]
+        capture_bitswap_config_dict["wait_before_startup"] = parser["Capture_Bitswap"][
+            "wait_before_startup"
+        ]
+        capture_bitswap_config_dict["max_intervals"] = parser["Capture_Bitswap"][
+            "max_intervals"
+        ]
+        capture_bitswap_config_dict["shutdown_time"] = parser["Capture_Bitswap"][
+            "shutdown_time"
+        ]
+        capture_bitswap_config_dict["log_file"] = parser["Capture_Bitswap"]["log_file"]
+        capture_bitswap_config_dict["connect_retries"] = parser["Capture_Bitswap"][
+            "connect_retries"
+        ]
+        capture_bitswap_config_dict["connect_retry_delay"] = parser["Capture_Bitswap"][
+            "connect_retry_delay"
+        ]
+
+    except KeyError:
+        parser["Capture_Bitswap"] = {}
+        parser["Capture_Bitswap"]["capture_interval_delay"] = "600"
+        parser["Capture_Bitswap"]["sql_timeout"] = "60"
+        parser["Capture_Bitswap"]["wait_before_startup"] = "60"
+        parser["Capture_Bitswap"]["max_intervals"] = "1440"
+        parser["Capture_Bitswap"]["shutdown_time"] = "22:0:0"
+        parser["Capture_Bitswap"]["log_file"] = "capture_bitswap.log"
+        parser["Capture_Bitswap"]["connect_retries"] = "30"
+        parser["Capture_Bitswap"]["connect_retry_delay"] = "30"
+
+        with open(config_file, "w") as configfile:
+            parser.write(configfile)
+
+        capture_bitswap_config_dict = {}
+        capture_bitswap_config_dict["capture_interval_delay"] = parser[
+            "Capture_Bitswap"
+        ]["capture_interval_delay"]
+        capture_bitswap_config_dict["sql_timeout"] = parser["Capture_Bitswap"][
+            "sql_timeout"
+        ]
+        capture_bitswap_config_dict["wait_before_startup"] = parser["Capture_Bitswap"][
+            "wait_before_startup"
+        ]
+        capture_bitswap_config_dict["max_intervals"] = parser["Capture_Bitswap"][
+            "max_intervals"
+        ]
+        capture_bitswap_config_dict["shutdown_time"] = parser["Capture_Bitswap"][
+            "shutdown_time"
+        ]
+        capture_bitswap_config_dict["log_file"] = parser["Capture_Bitswap"]["log_file"]
+        capture_bitswap_config_dict["connect_retries"] = parser["Capture_Bitswap"][
+            "connect_retries"
+        ]
+        capture_bitswap_config_dict["connect_retry_delay"] = parser["Capture_Bitswap"][
+            "connect_retry_delay"
+        ]
+
+    return capture_bitswap_config_dict
+
+
+def get_capture_swarm_config_dict():
+    install_dict = get_install_template_dict()
+
+    config_file = Path().joinpath(install_dict["config_path"], "diyims.ini")
+    parser = configparser.ConfigParser()
+
+    try:
+        with open(config_file, "r") as configfile:
+            parser.read_file(configfile)
+
+    except FileNotFoundError:
+        raise ApplicationNotInstalledError(" ")
+
+    try:
+        capture_swarm_config_dict = {}
+        capture_swarm_config_dict["capture_interval_delay"] = parser["Capture_Swarm"][
+            "capture_interval_delay"
+        ]
+        capture_swarm_config_dict["sql_timeout"] = parser["Capture_Swarm"][
+            "sql_timeout"
+        ]
+        capture_swarm_config_dict["wait_before_startup"] = parser["Capture_Swarm"][
+            "wait_before_startup"
+        ]
+        capture_swarm_config_dict["max_intervals"] = parser["Capture_Swarm"][
+            "max_intervals"
+        ]
+        capture_swarm_config_dict["shutdown_time"] = parser["Capture_Swarm"][
+            "shutdown_time"
+        ]
+        capture_swarm_config_dict["log_file"] = parser["Capture_Swarm"]["log_file"]
+        capture_swarm_config_dict["connect_retries"] = parser["Capture_Swarm"][
+            "connect_retries"
+        ]
+        capture_swarm_config_dict["connect_retry_delay"] = parser["Capture_Swarm"][
+            "connect_retry_delay"
+        ]
+
+    except KeyError:
+        parser["Capture_Swarm"] = {}
+        parser["Capture_Swarm"]["capture_interval_delay"] = "600"
+        parser["Capture_Swarm"]["sql_timeout"] = "60"
+        parser["Capture_Swarm"]["wait_before_startup"] = "60"
+        parser["Capture_Swarm"]["max_intervals"] = "1440"
+        parser["Capture_Swarm"]["shutdown_time"] = "22:0:0"
+        parser["Capture_Swarm"]["log_file"] = "capture_swarm.log"
+        parser["Capture_Swarm"]["connect_retries"] = "30"
+        parser["Capture_Swarm"]["connect_retry_delay"] = "30"
+
+        with open(config_file, "w") as configfile:
+            parser.write(configfile)
+
+        capture_swarm_config_dict = {}
+        capture_swarm_config_dict["capture_interval_delay"] = parser["Capture_Swarm"][
+            "capture_interval_delay"
+        ]
+        capture_swarm_config_dict["sql_timeout"] = parser["Capture_Swarm"][
+            "sql_timeout"
+        ]
+        capture_swarm_config_dict["wait_before_startup"] = parser["Capture_Swarm"][
+            "wait_before_startup"
+        ]
+        capture_swarm_config_dict["max_intervals"] = parser["Capture_Swarm"][
+            "max_intervals"
+        ]
+        capture_swarm_config_dict["shutdown_time"] = parser["Capture_Swarm"][
+            "shutdown_time"
+        ]
+        capture_swarm_config_dict["log_file"] = parser["Capture_Swarm"]["log_file"]
+        capture_swarm_config_dict["connect_retries"] = parser["Capture_Swarm"][
+            "connect_retries"
+        ]
+        capture_swarm_config_dict["connect_retry_delay"] = parser["Capture_Swarm"][
+            "connect_retry_delay"
+        ]
+
+    return capture_swarm_config_dict
