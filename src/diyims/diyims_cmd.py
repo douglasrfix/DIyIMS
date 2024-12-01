@@ -19,7 +19,7 @@ from diyims.peer_capture import (
     capture_bitswap_main,
     capture_swarm_main,
 )
-from diyims.capture_want_lists import process_peers
+# from diyims.capture_want_lists import
 
 
 app = typer.Typer(
@@ -62,9 +62,9 @@ def capture_providers():
     capture_providers_main()
 
 
-@app.command()
-def capture_want_lists():
-    process_peers()
+# @app.command()
+# def capture_want_lists():
+#    process_peers()
 
 
 @app.command()
