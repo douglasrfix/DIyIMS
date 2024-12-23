@@ -20,7 +20,7 @@ def test_capture_providers():
 @pytest.mark.component
 def test_capture_want_lists():
     """testing find_providers with native windows install"""
-    command_string = "capture-want-lists"
+    command_string = "capture-want-lists --peer-type 'BP'"
     result = runner.invoke(app, shlex.split(command_string))
     print(result.stdout.rstrip())
     assert result.exit_code == 0

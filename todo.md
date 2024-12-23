@@ -8,7 +8,7 @@
 
 # TODO: error vs warning for permissive failures
 
-# [ ]: introduce logging
+# [x]: introduce logging
 # [x]: for ipfs testing clean up
 # [x]: todo checkboxes, colors in list
 # [ ]: Add backup and recovery of test environment for testing. save and restore
@@ -60,7 +60,7 @@
 # [x]: add diyims agent to identify who/what created an artifact for the network.
 # [x]: Set PYTHONDEVMODE to 1 for running tests
 # [x]: add table value for platform release level eg. window 10
-# [ ]: add peer type to peer table
+# [x]: add peer type to peer table
 # [x]: combine sql_table_dict with db utils rename db_operations
 # [x]: apt requires support is > 9.0
 # [x]: create config entry for want item.json
@@ -69,6 +69,8 @@
 # [x]: create config entry for want item
 # [x]: for beacon timings
 # [ ]: should cache reside on data drive if one is specified?
+# [ ]: should state reside on data drive if one is specified?
 # [x]: add date attributes to selection for purge
 # [x]: add wait for ipfs function
- # NOTE: get time to shut sown from config
+# [x]: get time to shut sown from config
+# [x]: add number of intervals to the shutdown criteria

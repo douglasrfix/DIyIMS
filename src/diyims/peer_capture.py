@@ -17,83 +17,191 @@ removed i.e. unpinned and a garbage collection has run.
 """
 
 import json
-import sqlite3
 import requests
+
+# import aiosql
 from datetime import datetime, timezone
 from sqlite3 import IntegrityError
 from time import sleep
+from multiprocessing.managers import BaseManager
+# from diyims.py_version_dep import get_sql_str
 
-from diyims.ipfs_utils import get_url_dict, wait_on_ipfs
-from diyims.path_utils import get_path_dict
-from diyims.database_utils import insert_peer_row, refresh_peer_table_dict
+from diyims.ipfs_utils import get_url_dict
+
+# from diyims.path_utils import get_path_dict
+from diyims.database_utils import (
+    insert_peer_row,
+    refresh_peer_table_dict,
+    select_peer_table_entry_by_key,
+    update_peer_table_peer_type_status,
+    set_up_sql_operations,
+)
 from diyims.general_utils import get_network_name, get_shutdown_target
 from diyims.logger_utils import get_logger
-from diyims.config_utils import (
-    get_capture_providers_config_dict,
-    get_capture_bitswap_config_dict,
-    get_capture_swarm_config_dict,
-)
+from diyims.config_utils import get_capture_peer_config_dict
 
 
-def capture_providers_main():
-    capture_providers_config_dict = get_capture_providers_config_dict()
-    logger = get_logger(capture_providers_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
-    wait_seconds = int(capture_providers_config_dict["wait_before_startup"])
+def capture_peer_main(peer_type):
+    capture_peer_config_dict = get_capture_peer_config_dict()
+    logger = get_logger(capture_peer_config_dict["log_file"], peer_type)
+    # wait_on_ipfs(logger)
+    # logger.debug("Wait on ipfs completed.")
+    wait_seconds = int(capture_peer_config_dict["wait_before_startup"])
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
-    logger.info("Startup of Peer Capture.")
-    target_DT = get_shutdown_target(capture_providers_config_dict)
+    if peer_type == "PP":
+        logger.info("Startup of Provider Capture.")
+    elif peer_type == "BP":
+        logger.info("Startup of Bitswap Capture.")
+    elif peer_type == "SP":
+        logger.info("Startup of Swarm Capture.")
+    interval_length = int(capture_peer_config_dict["capture_interval_delay"])
+    target_DT = get_shutdown_target(capture_peer_config_dict)
+    max_intervals = int(capture_peer_config_dict["max_intervals"])
+    logger.info(
+        f"Shutdown target {target_DT} or {max_intervals} intervals of {interval_length} seconds."
+    )
+    url_dict = get_url_dict()
+    network_name = get_network_name()
+
+    queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
+    if peer_type == "PP":
+        queue_server.register("get_provider_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_provider_queue()
+
+    elif peer_type == "BP":
+        queue_server.register("get_bitswap_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_bitswap_queue()
+
+    elif peer_type == "SP":
+        queue_server.register("get_swarm_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_swarm_queue()
+
+    capture_interval = 0
+    total_found = 0
+    total_added = 0
+    total_promoted = 0
     current_DT = datetime.now()
-    max_intervals = int(capture_providers_config_dict["max_intervals"])
-    logger.info(f"Shutdown target {target_DT} or {max_intervals} intervals.")
-    capture_providers_interval = 0
-    while target_DT > current_DT and capture_providers_interval < max_intervals:
-        sleep(int(capture_providers_config_dict["capture_interval_delay"]))
+    while target_DT > current_DT and capture_interval < max_intervals:
+        conn, queries = set_up_sql_operations(capture_peer_config_dict)
 
-        capture_providers(logger, capture_providers_config_dict)
+        capture_interval += 1
+        logger.debug(f"Start of Interval {capture_interval}")
 
+        found, added, promoted = capture_peers(
+            logger,
+            conn,
+            queries,
+            capture_peer_config_dict,
+            url_dict,
+            peer_queue,
+            peer_type,
+            network_name,
+        )
+
+        total_found += found
+        total_added += added
+        total_promoted += promoted
+
+        conn.close()
+        logger.debug(f"Interval {capture_interval} complete.")
+        sleep(int(capture_peer_config_dict["capture_interval_delay"]))
         current_DT = datetime.now()
-        capture_providers_interval += 1
 
-    logger.info("Normal shutdown of Peer Capture.")
+    log_string = f"{total_found} {peer_type} found, {total_promoted} promoted and {total_added} added in {capture_interval} intervals)"
+    logger.info(log_string)
+
+    logger.info("Normal shutdown of Capture Process.")
     return
 
 
-def capture_providers(logger, capture_providers_config_dict):
-    logger.debug("Startup of Provider Capture.")
-    url_dict = get_url_dict()
-    path_dict = get_path_dict()
-    network_name = get_network_name()
-    connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(
-        connect_path, timeout=int(capture_providers_config_dict["sql_timeout"])
-    )
+def capture_peers(
+    logger,
+    conn,
+    queries,
+    capture_peer_config_dict,
+    url_dict,
+    peer_queue,
+    peer_type,
+    network_name,
+):
     key_arg = {"arg": network_name}
-    i = 0
-    not_found = True
-    while i < int(capture_providers_config_dict["connect_retries"]) and not_found:
+    i = 0  # NOTE: fix this name
+    not_found = True  # NOTE: fix this name
+    while i < int(capture_peer_config_dict["connect_retries"]) and not_found:
         try:
-            with requests.post(
-                url_dict["find_providers"], params=key_arg, stream=True
-            ) as r:
-                r.raise_for_status()
-                not_found = False
+            logger.debug("start of requests")
 
-                decode_findprovs_structure(logger, conn, r)
+            if peer_type == "PP":
+                with requests.post(
+                    url_dict["find_providers"], params=key_arg, stream=False
+                ) as r:
+                    r.raise_for_status()
+                    logger.debug("end of requests")
+                    not_found = False
+
+                found, added, promoted = decode_findprovs_structure(
+                    logger,
+                    conn,
+                    queries,
+                    r,
+                    peer_queue,
+                )
+
+            elif peer_type == "BP":
+                with requests.post(
+                    url_dict["bitswap_stat"], params=key_arg, stream=False
+                ) as r:
+                    r.raise_for_status()
+                    logger.debug("end of requests")
+                    not_found = False
+
+                    found, added, promoted = decode_bitswap_stat_structure(
+                        logger,
+                        conn,
+                        queries,
+                        r,
+                        peer_queue,
+                    )
+
+            elif peer_type == "SP":
+                with requests.post(
+                    url_dict["swarm_peers"], params=key_arg, stream=False
+                ) as r:
+                    r.raise_for_status()
+                    logger.debug("end of requests")
+                    not_found = False
+
+                    found, added, promoted = decode_swarm_structure(
+                        logger,
+                        conn,
+                        queries,
+                        r,
+                        peer_queue,
+                    )
 
         except ConnectionError:
             logger.exception()
-            sleep(int(capture_providers_config_dict["connect_retry_delay"]))
+            sleep(int(capture_peer_config_dict["connect_retry_delay"]))
             i += 1
-    logger.debug("Provider Capture complete.")
-    return
+    return found, added, promoted
 
 
-def decode_findprovs_structure(logger, conn, r):
+def decode_findprovs_structure(
+    logger,
+    conn,
+    queries,
+    r,
+    peer_queue,
+):
     found = 0
     added = 0
+    promoted = 0
+    peer_type = "PP"
+
     for line in r.iter_lines():
         if line:
             decoded_line = line.decode("utf-8")
@@ -110,82 +218,69 @@ def decode_findprovs_structure(logger, conn, r):
                 DTS = str(datetime.now(timezone.utc))
                 peer_table_dict["peer_ID"] = responses_dict["ID"]
                 peer_table_dict["local_update_DTS"] = DTS
-                peer_table_dict["peer_type"] = "NP"
+                peer_table_dict["processing_status"] = "WLP"
+                peer_table_dict["peer_type"] = "PP"
+                found += 1
+
                 try:
-                    insert_peer_row(conn, peer_table_dict)
+                    insert_peer_row(conn, queries, peer_table_dict)
                     conn.commit()
-                    added = added + 1
+                    added += 1
+
                 except IntegrityError:
-                    pass
-                found = found + 1
+                    peer_table_entry = select_peer_table_entry_by_key(
+                        conn, queries, peer_table_dict
+                    )
+                    if peer_table_entry["peer_type"] == "BP":
+                        peer_table_dict["peer_type"] = "PP"
+                        peer_table_dict["processing_status"] = "WLP"
+                        peer_table_dict["local_update_DTS"] = DTS
+                        update_peer_table_peer_type_status(
+                            conn, queries, peer_table_dict
+                        )
+                        promoted += 1
+                        conn.commit()
 
-    conn.close()
-    log_string = f"{found} providers found and {added} providers added to peer table"
-    logger.debug(log_string)
-    return
+                    elif peer_table_entry["peer_type"] == "SP":
+                        peer_table_dict["peer_type"] = "PP"
+                        peer_table_dict["processing_status"] = "WLP"
+                        peer_table_dict["local_update_DTS"] = DTS
+                        update_peer_table_peer_type_status(
+                            conn, queries, peer_table_dict
+                        )
+                        promoted += 1
+                        conn.commit()
+    if found > 0:
+        if peer_table_entry["peer_type"] == "PP" and added != 0:
+            peer_queue.put_nowait("wake up")
+            logger.debug("put wake up")
+        elif peer_table_entry["peer_type"] == "BP" and promoted != 0:
+            peer_queue.put_nowait("promoted from bitswap wake up")
+            logger.debug("put promoted from bitswap wake up")
 
+        elif peer_table_entry["peer_type"] == "SP" and promoted != 0:
+            peer_queue.put_nowait("promoted from swarm wake up")
+            logger.debug("put promoted from swarm wake up")
+    else:
+        if peer_type == "PP":
+            peer_queue.put_nowait("wake up")
+            logger.debug("put wake up")
 
-def capture_bitswap_main():
-    capture_bitswap_config_dict = get_capture_bitswap_config_dict()
-    logger = get_logger(capture_bitswap_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
-    wait_seconds = int(capture_bitswap_config_dict["wait_before_startup"])
-    logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
-    sleep(wait_seconds)
-    logger.info("Startup of Capture Bitswap.")
-
-    target_DT = get_shutdown_target(capture_bitswap_config_dict)
-    current_DT = datetime.now()
-    max_intervals = int(capture_bitswap_config_dict["max_intervals"])
-    logger.info(f"Shutdown target {target_DT} or {max_intervals} intervals.")
-    capture_bitswap_interval = 0
-    while target_DT > current_DT and capture_bitswap_interval < max_intervals:
-        sleep(int(capture_bitswap_config_dict["capture_interval_delay"]))
-        capture_bitswap_peers(logger, capture_bitswap_config_dict)
-        capture_bitswap_interval += 1
-        current_DT = datetime.now()
-
-    logger.info("Normal shutdown of Capture Bitswap.")
-    return
-
-
-def capture_bitswap_peers(logger, capture_bitswap_config_dict):
-    url_dict = get_url_dict()
-    path_dict = get_path_dict()
-
-    connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(
-        connect_path, timeout=int(capture_bitswap_config_dict["sql_timeout"])
-    )
-
-    i = 0
-    not_found = True
-    while i < int(capture_bitswap_config_dict["connect_retries"]) and not_found:
-        try:
-            with requests.post(url_dict["bitswap_stat"], stream=False) as r:
-                r.raise_for_status()
-
-            not_found = False
-            found, added = decode_bitswap_stat_structure(conn, r)
-        except ConnectionError:
-            logger.exception()
-            sleep(int(capture_bitswap_config_dict["connect_retry_delay"]))
-            i += 1
-
-    conn.close()
-    log_string = (
-        f"{found} bitswap peers found and {added} bitswap peers added to peer table"
-    )
+    log_string = f"{found} providers found, {added} added and {promoted} promoted."
     logger.info(log_string)
-    logger.info("Capture Bitswap complete.")
-
-    return
+    return found, added, promoted
 
 
-def decode_bitswap_stat_structure(conn, r):
+def decode_bitswap_stat_structure(
+    logger,
+    conn,
+    queries,
+    r,
+    peer_queue,
+):
     found = 0
     added = 0
+    promoted = 0
     json_dict = json.loads(r.text)
     peer_list = json_dict["Peers"]
     for peer in peer_list:
@@ -195,76 +290,34 @@ def decode_bitswap_stat_structure(conn, r):
         peer_table_dict["local_update_DTS"] = DTS
         peer_table_dict["peer_type"] = "BP"
         try:
-            insert_peer_row(conn, peer_table_dict)
+            insert_peer_row(conn, queries, peer_table_dict)
             conn.commit()
-            added = added + 1
+
+            added += 1
         except IntegrityError:
             pass
-        found = found + 1
+        found += 1
+    # NOTE: add promote feature?
 
-    return found, added
-
-
-def capture_swarm_main():
-    capture_swarm_config_dict = get_capture_swarm_config_dict()
-    logger = get_logger(capture_swarm_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
-    wait_seconds = int(capture_swarm_config_dict["wait_before_startup"])
-    logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
-    sleep(wait_seconds)
-    logger.info("Startup of Capture Swarm.")
-
-    target_DT = get_shutdown_target(capture_swarm_config_dict)
-    current_DT = datetime.now()
-    max_intervals = int(capture_swarm_config_dict["max_intervals"])
-    logger.info(f"Shutdown target {target_DT} or {max_intervals} intervals.")
-    capture_swarm_interval = 0
-    while target_DT > current_DT and capture_swarm_interval < max_intervals:
-        sleep(int(capture_swarm_config_dict["capture_interval_delay"]))
-        capture_swarm_peers(logger, capture_swarm_config_dict)
-        capture_swarm_interval += 1
-        current_DT = datetime.now()
-
-    logger.info("Normal shutdown of Capture Swarm.")
-    return
-
-
-def capture_swarm_peers(logger, capture_swarm_config_dict):
-    url_dict = get_url_dict()
-    path_dict = get_path_dict()
-
-    connect_path = path_dict["db_file"]
-    conn = sqlite3.connect(
-        connect_path, timeout=int(capture_swarm_config_dict["sql_timeout"])
-    )
-    i = 0
-    not_found = True
-    while i < int(capture_swarm_config_dict["connect_retries"]) and not_found:
-        try:
-            with requests.post(url_dict["swarm_peers"], stream=False) as r:
-                r.raise_for_status()
-            not_found = False
-            found, added = decode_swarm_structure(conn, r)
-        except ConnectionError:
-            logger.exception()
-            sleep(int(capture_swarm_config_dict["connect_retry_delay"]))
-            i += 1
-    conn.close()
-    log_string = (
-        f"{found} swarm peers found and {added} swarm peers added to peer table"
-    )
+    peer_queue.put_nowait("wake up")
+    logger.debug("put wake up")
+    log_string = f"{found} bitswap found and {added} added."
     logger.info(log_string)
-    logger.info("Capture Swarm complete.")
-
-    return
+    return found, added, promoted
 
 
-def decode_swarm_structure(conn, r):
+def decode_swarm_structure(
+    logger,
+    conn,
+    queries,
+    r,
+    peer_queue,
+):
     level_zero_dict = json.loads(r.text)
     level_one_list = level_zero_dict["Peers"]
     found = 0
     added = 0
+    promoted = 0
     for peer_dict in level_one_list:
         peer_table_dict = refresh_peer_table_dict()
         DTS = str(datetime.now(timezone.utc))
@@ -272,14 +325,20 @@ def decode_swarm_structure(conn, r):
         peer_table_dict["local_update_DTS"] = DTS
         peer_table_dict["peer_type"] = "SP"
         try:
-            insert_peer_row(conn, peer_table_dict)
+            insert_peer_row(conn, queries, peer_table_dict)
             conn.commit()
-            added = added + 1
+            added += 1
+
         except IntegrityError:
             pass
-        found = found + 1
-    return found, added
+        found += 1
+
+    peer_queue.put_nowait("wake up")
+    logger.debug("put wake up")
+    log_string = f"{found} swarm found and {added} added."
+    logger.info(log_string)
+    return found, added, promoted
 
 
 if __name__ == "__main__":
-    capture_providers_main()
+    capture_peer_main("PP")

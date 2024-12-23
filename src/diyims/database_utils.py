@@ -1,12 +1,19 @@
-import aiosql
+def set_up_sql_operations(config_dict):
+    from diyims.path_utils import get_path_dict
+    from diyims.py_version_dep import get_sql_str
+    import aiosql
+    import sqlite3
 
-from diyims.py_version_dep import get_sql_str
-
-
-def insert_peer_row(conn, peer_table_dict):
+    path_dict = get_path_dict()
     sql_str = get_sql_str()
+    connect_path = path_dict["db_file"]
     queries = aiosql.from_str(sql_str, "sqlite3")
+    conn = sqlite3.connect(connect_path, timeout=int(config_dict["sql_timeout"]))
+    conn.row_factory = sqlite3.Row
+    return conn, queries
 
+
+def insert_peer_row(conn, queries, peer_table_dict):
     queries.insert_peer_row(
         conn,
         peer_table_dict["peer_ID"],
@@ -24,6 +31,34 @@ def insert_peer_row(conn, peer_table_dict):
     return
 
 
+def select_peer_table_entry_by_key(conn, queries, peer_table_dict):
+    peer_table_entry = queries.select_peer_table_entry_by_key(
+        conn,
+        peer_table_dict["peer_ID"],
+    )
+    return peer_table_entry
+
+
+def update_peer_table_peer_type_status(conn, queries, peer_table_dict):
+    queries.update_peer_table_peer_type_status(
+        conn,
+        peer_table_dict["peer_type"],
+        peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
+def update_peer_table_status(conn, queries, peer_table_dict):
+    queries.update_peer_table_status(
+        conn,
+        peer_table_dict["processing_status"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
 def refresh_peer_table_dict():
     peer_table_dict = {}
     peer_table_dict["peer_ID"] = "null"
@@ -31,24 +66,34 @@ def refresh_peer_table_dict():
     peer_table_dict["peer_type"] = "null"
     peer_table_dict["origin_update_DTS"] = "null"
     peer_table_dict["local_update_DTS"] = "null"
+    peer_table_dict["wanted_found"] = "0"
+    peer_table_dict["wanted_added"] = "0"
+    peer_table_dict["wanted_updated"] = "0"
+    peer_table_dict["zero_cid_samples"] = "0"
+    peer_table_dict["connection_retry_iteration"] = "null"
     peer_table_dict["execution_platform"] = "null"
     peer_table_dict["python_version"] = "null"
     peer_table_dict["IPFS_agent"] = "null"
     peer_table_dict["processing_status"] = "null"
+    peer_table_dict["agent"] = "null"
     peer_table_dict["version"] = "0"
-    peer_table_dict["agent"] = "diyims/0.0.0"
+
     return peer_table_dict
 
 
-def insert_network_row(conn, network_table_dict):
-    sql_str = get_sql_str()
-    queries = aiosql.from_str(sql_str, "sqlite3")
-
+def insert_network_row(conn, queries, network_table_dict):
     queries.insert_network_row(
         conn,
         network_table_dict["network_name"],
     )
     return
+
+
+def select_network_name(conn, queries, network_table_dict):
+    network_table_dict = queries.select_network_name(
+        conn,
+    )
+    return network_table_dict
 
 
 def refresh_network_table_dict():

@@ -168,10 +168,10 @@ def init():  # NOTE: add wait on ipfs
     object_type = "network_name"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
-    insert_peer_row(conn, peer_table_dict)
+    insert_peer_row(conn, queries, peer_table_dict)
     conn.commit()
 
-    insert_network_row(conn, network_table_dict)
+    insert_network_row(conn, queries, network_table_dict)
     conn.commit()
 
     conn.close()
@@ -184,7 +184,7 @@ def import_car():
     car_path = get_car_path()
     dag_import_files = {"file": car_path}
     dag_import_params = {
-        "pin-roots": "true",  # NOTE: http status 500 if false but true does not pin given not in off-line mode
+        "pin-roots": "true",  # http status 500 if false but true does not pin given not in off-line mode
         "silent": "false",
         "stats": "false",
         "allow-big-block": "false",
@@ -197,7 +197,7 @@ def import_car():
         json_dict = json.loads(r.text)
         imported_CID = json_dict["Root"]["Cid"]["/"]
 
-        # NOTE: import does not pin so it must be done manually
+        # import does not pin unless in offline mode so it must be done manually
         pin_add_params = {"arg": imported_CID}
         with requests.post(
             url_dict["pin_add"], params=pin_add_params, stream=False

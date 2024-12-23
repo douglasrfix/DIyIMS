@@ -47,6 +47,53 @@ insert into peer_table (peer_ID, IPNS_name, peer_type, origin_update_DTS, local_
 values (:peer_ID, :IPNS_name, :peer_type, :origin_update_DTS, :local_update_DTS, :execution_platform, :python_version,
 		:IPFS_agent, :processing_status, :agent, :version);
 
+-- name: update_peer_table_peer_type_status!
+update peer_table set peer_type = :peer_type, processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID
+
+-- name: update_peer_table_status!
+update peer_table set processing_status = :processing_status
+where peer_ID = :peer_ID
+
+-- name: select_peers_by_peer_type
+SELECT
+	peer_ID,
+	IPNS_name,
+	peer_type,
+   	origin_update_DTS,
+	local_update_DTS,
+   	execution_platform,
+	python_version,
+   	IPFS_agent,
+	processing_status,
+	agent,
+ 	version
+
+FROM
+   peer_table
+
+where peer_type = :peer_type and (processing_status = "null" or processing_status = "WLP" or
+	processing_status = "WLB" or processing_status = "WLS")
+
+-- name: select_peer_table_entry_by_key^
+SELECT
+	peer_ID,
+	IPNS_name,
+	peer_type,
+   	origin_update_DTS,
+	local_update_DTS,
+   	execution_platform,
+	python_version,
+   	IPFS_agent,
+	processing_status,
+	agent,
+ 	version
+
+FROM
+   peer_table
+
+where peer_ID = :peer_ID
+
 -- name: insert_header_row!
 insert into header_table (version, object_CID, object_type, insert_DTS,
 	 prior_header_CID, header_CID)
@@ -62,6 +109,8 @@ values (:peer_ID, :object_CID, :insert_DTS, :last_update_DTS,
 update want_list_table set last_update_DTS = :last_update_DTS,
  insert_update_delta = :insert_update_delta
 where peer_ID = :peer_ID and object_CID = :object_CID
+
+
 
 -- name: insert_network_row!
 insert into network_table (network_name)
@@ -126,24 +175,7 @@ FROM
 
 ;
 
--- name: select_all_providers
-SELECT
-	peer_ID,
-	IPNS_name,
-	peer_type,
-   	origin_update_DTS,
-	local_update_DTS,
-   	execution_platform,
-	python_version,
-   	IPFS_agent,
-	processing_status,
-	agent,
- 	version
 
-FROM
-   peer_table
-
-where peer_type = :peer_type
 
 
 -- name: select_want_list_entry_by_key^

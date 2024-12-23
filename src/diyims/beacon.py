@@ -12,8 +12,9 @@ import requests
 from datetime import datetime, timedelta, date
 from time import sleep
 from pathlib import Path
+from multiprocessing.managers import BaseManager
 
-from diyims.ipfs_utils import get_url_dict, wait_on_ipfs
+from diyims.ipfs_utils import get_url_dict
 from diyims.general_utils import get_DTS, get_shutdown_target
 from diyims.py_version_dep import get_sql_str
 from diyims.want_item_utils import refresh_want_item_dict
@@ -22,11 +23,12 @@ from diyims.config_utils import get_beacon_config_dict, get_satisfy_config_dict
 from diyims.logger_utils import get_logger
 
 
-def beacon_main(queue1, queue2):
+def beacon_main():
     beacon_config_dict = get_beacon_config_dict()
-    logger = get_logger(beacon_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
+    logger = get_logger(
+        beacon_config_dict["log_file"],
+        "none",
+    )
     wait_seconds = int(beacon_config_dict["wait_before_startup"])
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
@@ -41,14 +43,22 @@ def beacon_main(queue1, queue2):
     logger.info(f"Shutdown target {target_DT} or {max_intervals} intervals.")
     beacon_interval = 0
     satisfy_dict = {}
+
+    queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
+    queue_server.register("get_satisfy_queue")
+    queue_server.register("get_beacon_queue")
+    queue_server.connect()
+    satisfy_queue = queue_server.get_satisfy_queue()
+    beacon_queue = queue_server.get_beacon_queue()
     while target_DT > current_DT and beacon_interval < max_intervals:
         for _ in range(int(beacon_config_dict["number_of_periods"])):
+            # NOTE: put process here
             beacon_CID, want_item_file = create_beacon_CID(logger, beacon_config_dict)
             satisfy_dict["status"] = "run"
             satisfy_dict["wait_time"] = beacon_config_dict["short_period_seconds"]
             satisfy_dict["want_item_file"] = want_item_file
-            queue1.put(satisfy_dict)
-            message = queue2.get()
+            satisfy_queue.put(satisfy_dict)
+            message = beacon_queue.get()
             logger.debug(message)
 
             flash_beacon(logger, beacon_config_dict, beacon_CID)
@@ -58,16 +68,16 @@ def beacon_main(queue1, queue2):
             satisfy_dict["status"] = "run"
             satisfy_dict["wait_time"] = beacon_config_dict["long_period_seconds"]
             satisfy_dict["want_item_file"] = want_item_file
-            queue1.put(satisfy_dict)
-            message = queue2.get()
+            satisfy_queue.put(satisfy_dict)
+            message = beacon_queue.get()
             logger.debug(message)
 
             flash_beacon(logger, beacon_config_dict, beacon_CID)
         beacon_interval += 1
         current_DT = datetime.now()
     satisfy_dict["status"] = "shutdown"
-    queue1.put(satisfy_dict)
-    message = queue2.get()
+    satisfy_queue.put(satisfy_dict)
+    message = beacon_queue.get()
     logger.info(f"Satisfy status {message}")
     logger.info("Normal shutdown of Beacon.")
     return
@@ -83,7 +93,9 @@ def create_beacon_CID(logger, beacon_config_dict):
     conn = sqlite3.connect(connect_path, timeout=int(beacon_config_dict["sql_timeout"]))
     conn.row_factory = sqlite3.Row
 
-    header_row = queries.select_last_peer_table_entry_header(conn)
+    header_row = queries.select_last_peer_table_entry_header(
+        conn
+    )  # NOTE: needs to point to network name
 
     want_item_dict = refresh_want_item_dict()
     want_item_dict["want_CID"] = header_row["object_CID"]
@@ -148,28 +160,35 @@ def flash_beacon(logger, beacon_config_dict, beacon_CID):
     return
 
 
-def satisfy_main(queue1, queue2):
+def satisfy_main():
     satisfy_config_dict = get_satisfy_config_dict()
-    logger = get_logger(satisfy_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
+    logger = get_logger(
+        satisfy_config_dict["log_file"],
+        "none",
+    )
     wait_seconds = int(satisfy_config_dict["wait_before_startup"])
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
     logger.info("Startup of Satisfy.")
     logger.info("Shutdown signal comes from Beacon.")
 
-    satisfy_dict = queue1.get()
+    queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
+    queue_server.register("get_satisfy_queue")
+    queue_server.register("get_beacon_queue")
+    queue_server.connect()
+    satisfy_queue = queue_server.get_satisfy_queue()
+    beacon_queue = queue_server.get_beacon_queue()
+    satisfy_dict = satisfy_queue.get()
 
     while satisfy_dict["status"] == "run":
         wait_time = int(satisfy_dict["wait_time"])
         want_item_file = satisfy_dict["want_item_file"]
-        queue2.put(satisfy_dict["status"])
+        beacon_queue.put(satisfy_dict["status"])
         sleep(wait_time)
         satisfy_beacon(logger, satisfy_config_dict, want_item_file)
-        satisfy_dict = queue1.get()
+        satisfy_dict = satisfy_queue.get()
 
-    queue2.put(satisfy_dict["status"])
+    beacon_queue.put(satisfy_dict["status"])
     logger.info("Normal shutdown of Satisfy.")
     return
 

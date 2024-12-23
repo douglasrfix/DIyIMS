@@ -8,18 +8,17 @@ need the if __name__ == "__main__":.
 """
 
 import typer
+from typing import Optional
+from typing_extensions import Annotated
 
 from diyims import install_cli
 from diyims import beacon_cli
 from diyims.scheduler import scheduler_main
 from diyims.ipfs_utils import force_purge
 from diyims.ipfs_utils import purge
-from diyims.peer_capture import (
-    capture_providers_main,
-    capture_bitswap_main,
-    capture_swarm_main,
-)
-# from diyims.capture_want_lists import
+from diyims.queue_server import queue_main
+from diyims.peer_capture import capture_peer_main
+from diyims.capture_want_lists import capture_peer_want_lists
 
 
 app = typer.Typer(
@@ -59,7 +58,7 @@ def capture_providers():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    capture_providers_main()
+    capture_peer_main("PP")
 
 
 # @app.command()
@@ -74,7 +73,7 @@ def capture_swarm_peers():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    capture_swarm_main()
+    capture_peer_main("SP")
 
 
 @app.command()
@@ -84,7 +83,7 @@ def capture_bitswap_peers():
     If a pre-existing installation exists it will simply return with an error
     message
     """
-    capture_bitswap_main()
+    capture_peer_main("BP")
 
 
 @app.command()
@@ -95,3 +94,27 @@ def run_scheduler():
     message
     """
     scheduler_main()
+
+
+@app.command()
+def run_queue_server():
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    queue_main()
+
+
+@app.command()
+def capture_want_lists(
+    peer_type: Annotated[
+        Optional[str], typer.Option(help="Peer Type", rich_help_panel="Peer Type")
+    ] = "PP",
+):
+    """Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+    capture_peer_want_lists(peer_type)

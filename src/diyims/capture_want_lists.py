@@ -1,15 +1,12 @@
 import json
-import sqlite3
 from datetime import datetime
 from requests.exceptions import ConnectionError
 from time import sleep
-
-import aiosql
 import requests
-
-
 from sqlite3 import IntegrityError
-
+from multiprocessing import Pool, set_start_method, freeze_support
+from multiprocessing.managers import BaseManager
+from queue import Empty
 
 from diyims.database_utils import (
     insert_want_list_row,
@@ -17,99 +14,239 @@ from diyims.database_utils import (
     update_last_update_DTS,
     refresh_peer_table_dict,
     refresh_want_list_table_dict,
+    set_up_sql_operations,
+    update_peer_table_status,
 )
 from diyims.general_utils import get_DTS, get_shutdown_target
-from diyims.ipfs_utils import get_url_dict, wait_on_ipfs
-from diyims.path_utils import get_path_dict
-from diyims.py_version_dep import get_sql_str
-from diyims.logger_utils import get_logger
+from diyims.ipfs_utils import get_url_dict
+from diyims.logger_utils import get_logger, get_logger_task
 from diyims.config_utils import get_want_list_config_dict
 
 
-def capture_peer_want_lists(runtime_peer_type):
+def capture_peer_want_lists(peer_type):
+    freeze_support()
+    try:
+        set_start_method("spawn")
+    except RuntimeError:
+        pass
+
     want_list_config_dict = get_want_list_config_dict()
-    logger = get_logger(want_list_config_dict["log_file"])
-    wait_on_ipfs(logger)
-    logger.debug("Wait on ipfs completed.")
+    logger = get_logger(
+        want_list_config_dict["log_file"],
+        peer_type,
+    )
     wait_seconds = int(want_list_config_dict["wait_before_startup"])
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
     logger.info("Startup of Want List Capture.")
     target_DT = get_shutdown_target(want_list_config_dict)
-    current_DT = datetime.now()
+
     max_intervals = int(want_list_config_dict["max_intervals"])
-    number_of_samples = int(want_list_config_dict["number_of_samples"])
+    number_of_samples_per_interval = int(
+        want_list_config_dict["number_of_samples_per_interval"]
+    )
     seconds_per_sample = 60 // int(want_list_config_dict["samples_per_minute"])
-    total_seconds = number_of_samples * seconds_per_sample
+    total_seconds = number_of_samples_per_interval * seconds_per_sample
+    wait_for_new_peer = 60 * int(want_list_config_dict["wait_for_new_peer_minutes"])
     logger.info(
         f"Shutdown target {target_DT} or {max_intervals} intervals of {total_seconds} seconds."
     )
-    provider_interval = 0
+    interval_count = 0
     total_peers_processed = 0
-    total_CIDs_captured = 0
 
-    while target_DT > current_DT and provider_interval < max_intervals:
-        i = 0
-        while i < number_of_samples:
-            peers_processed, total_CIDs_wanted = capture_want_lists_for_peers(
-                logger, want_list_config_dict, runtime_peer_type
-            )
-            total_peers_processed = total_peers_processed + peers_processed
-            total_CIDs_captured = total_CIDs_captured + total_CIDs_wanted
-            wait_seconds = seconds_per_sample
-            i += 1
-            sleep(wait_seconds)
+    queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
+    if peer_type == "PP":
+        queue_server.register("get_provider_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_provider_queue()
+        pool_workers = int(want_list_config_dict["provider_pool_workers"])
+        maxtasks = int(want_list_config_dict["provider_maxtasks"])
+    elif peer_type == "BP":
+        queue_server.register("get_bitswap_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_bitswap_queue()
+        pool_workers = int(want_list_config_dict["bitswap_pool_workers"])
+        maxtasks = int(want_list_config_dict["bitswap_maxtasks"])
+    elif peer_type == "SP":
+        queue_server.register("get_swarm_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_swarm_queue()
+        pool_workers = int(want_list_config_dict["swarm_pool_workers"])
+        maxtasks = int(want_list_config_dict["swarm_maxtasks"])
 
-        log_string = f"{total_peers_processed} NP peers processed with {total_CIDs_wanted} CIDs found."
-        logger.debug(log_string)
-        provider_interval += 1
+    with Pool(processes=pool_workers, maxtasksperchild=maxtasks) as pool:
         current_DT = datetime.now()
+        while target_DT > current_DT:
+            peers_processed = capture_want_lists_for_peers(
+                logger,
+                want_list_config_dict,
+                peer_type,
+                pool,
+            )
+            total_peers_processed += peers_processed
+            log_string = f"{peers_processed} {peer_type} peers submitted for Want List processing."
+            logger.debug(log_string)
+            interval_count += 1
+            try:
+                msg = peer_queue.get(timeout=wait_for_new_peer)
+                logger.debug(msg)
+            except Empty:
+                logger.debug("Queue empty")
 
-    logger.info("Normal shutdown of Want List Capture.")
+            except AttributeError:
+                sleep(60)
+            interval_count += 1
+            current_DT = datetime.now()
+
+        log_string = f"{total_peers_processed} {peer_type} peers submitted for Want List  processing."
+        logger.info(log_string)
+        logger.info("Normal shutdown of Want List Capture.")
     return
 
 
-def capture_want_lists_for_peers(logger, want_list_config_dict, runtime_peer_type):
-    path_dict = get_path_dict()
-    sql_str = get_sql_str()
-    connect_path = path_dict["db_file"]
+def capture_want_lists_for_peers(
+    logger,
+    want_list_config_dict,
+    peer_type,
+    pool,
+):
     peers_processed = 0
-    total_CIDs_wanted = 0
-    CIDs_wanted = 0
-    queries = aiosql.from_str(sql_str, "sqlite3")
-    with sqlite3.connect(
-        connect_path, timeout=int(want_list_config_dict["sql_timeout"])
-    ) as conn:
-        conn.row_factory = sqlite3.Row
-        with queries.select_all_providers_cursor(
-            conn, runtime_peer_type
-        ) as rows_of_peers:
-            for peer in rows_of_peers:
-                peer_table_dict = refresh_peer_table_dict()
-                peer_table_dict["peer_ID"] = peer["peer_ID"]
-                peer_table_dict["processing_status"] = peer["processing_status"]
-                CIDs_wanted = capture_peer_want_list_by_id(
-                    logger, want_list_config_dict, conn, queries, peer_table_dict
-                )
-                peers_processed += 1
-                total_CIDs_wanted = total_CIDs_wanted + CIDs_wanted
-    conn.close()
-    log_string = (
-        f"{peers_processed} peers processed with {total_CIDs_wanted} CIDs found."
-    )
+    connR, queries = set_up_sql_operations(want_list_config_dict)
+    connU, queries = set_up_sql_operations(
+        want_list_config_dict
+    )  # to avoid locking conflict with the read
+    rows_of_peers = queries.select_peers_by_peer_type(connR, peer_type)
+
+    for peer in rows_of_peers:
+        peer_table_dict = refresh_peer_table_dict()
+        peer_table_dict["peer_ID"] = peer["peer_ID"]
+        peer_table_dict["peer_type"] = peer["peer_type"]
+        peer_table_dict["processing_status"] = "WLX"  # set to suppress resubmission
+        update_peer_table_status(connU, queries, peer_table_dict)
+        connU.commit()
+        pool.apply_async(
+            submitted_capture_peer_want_list_by_id,
+            args=(
+                want_list_config_dict,
+                peer_table_dict,
+            ),
+        )
+
+        logger.debug(f"peer {peers_processed} id {peer_table_dict['peer_ID']}.")
+        peers_processed += 1
+
+    connR.close()
+    connU.close()
+
+    return peers_processed
+
+
+def submitted_capture_peer_want_list_by_id(
+    want_list_config_dict,
+    peer_table_dict,
+):
+    peer_type = peer_table_dict["peer_type"]
+    peer_ID = peer_table_dict["peer_ID"]
+    logger = get_logger_task(peer_type, peer_ID)
+    logger.debug(f"Want list capture for {peer_ID} of type {peer_type} started.")
+
+    queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
+    if peer_type == "PP":
+        queue_server.register("get_provider_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_provider_queue()
+        max_zero_sample_count = int(want_list_config_dict["provider_zero_sample_count"])
+        peer_table_dict["processing_status"] = "WLP"
+
+    elif peer_type == "BP":
+        queue_server.register("get_bitswap_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_bitswap_queue()
+        max_zero_sample_count = int(want_list_config_dict["bitswap_zero_sample_count"])
+        peer_table_dict["processing_status"] = "WLB"
+
+    elif peer_type == "SP":
+        queue_server.register("get_swarm_queue")
+        queue_server.connect()
+        peer_queue = queue_server.get_swarm_queue()
+        max_zero_sample_count = int(want_list_config_dict["bitswap_zero_sample_count"])
+        peer_table_dict["processing_status"] = "WLS"
+
+    # this is one sample interval for one peer
+    number_of_samples_per_interval = int(
+        want_list_config_dict["number_of_samples_per_interval"]
+    )  # per_interval
+    seconds_per_sample = 60 // int(want_list_config_dict["samples_per_minute"])
+    wait_seconds = seconds_per_sample
+    samples = 0
+    zero_sample_count = 0
+    found = 0
+    added = 0
+    updated = 0
+    total_found = 0
+    total_added = 0
+    total_updated = 0
+    NCW_count = 0
+
+    while (
+        samples < number_of_samples_per_interval
+        and zero_sample_count <= max_zero_sample_count
+    ):
+        sleep(wait_seconds)
+        found, added, updated = capture_peer_want_list_by_id(
+            logger, want_list_config_dict, peer_table_dict
+        )
+        total_found += found
+        total_added += added
+        total_updated += updated
+
+        if found == 0:  # provider processing never ends
+            zero_sample_count += 1
+        else:
+            zero_sample_count -= 1
+
+        if (
+            zero_sample_count == max_zero_sample_count
+        ):  # sampling permanently completed due to no want list available for peer
+            conn, queries = set_up_sql_operations(want_list_config_dict)
+            peer_table_dict["processing_status"] = "NCW"
+            update_peer_table_status(conn, queries, peer_table_dict)
+            conn.commit()
+            conn.close
+            NCW_count += 1
+        samples += 1
+
+    if zero_sample_count < max_zero_sample_count:  # sampling interval completed
+        conn, queries = set_up_sql_operations(
+            want_list_config_dict
+        )  # set from WLX to whatever so sampling will be continued next interval
+        update_peer_table_status(conn, queries, peer_table_dict)
+        conn.commit()
+        conn.close
+
+    log_string = f"In {samples} samples, {total_found} found, {total_added} added, {total_updated} updated and NCW {NCW_count} count for {peer_ID}"
     logger.debug(log_string)
-    return peers_processed, total_CIDs_wanted
+    logger.debug(f"Want list capture for {peer_ID} of type {peer_type} completed.")
+    peer_queue.put_nowait("wake up")
+    return
 
 
 def capture_peer_want_list_by_id(
-    logger, want_list_config_dict, conn, queries, peer_table_dict
-):
+    logger,
+    want_list_config_dict,
+    peer_table_dict,
+):  # This is one sample for a peer
     url_dict = get_url_dict()
     key_arg = {"peer": peer_table_dict["peer_ID"]}
-    i = 0
-    not_found = True
-    CID_count = 0
-    while i < int(want_list_config_dict["connect_retries"]) and not_found:
+    connection_retry = 0
+    connection_failed = True
+    found = 0
+    added = 0
+    updated = 0
+    while (
+        connection_retry < int(want_list_config_dict["connect_retries"])
+        and connection_failed
+    ):
         try:
             with requests.post(
                 url_dict["want_list"], params=key_arg, stream=False
@@ -117,29 +254,25 @@ def capture_peer_want_list_by_id(
                 r.raise_for_status()
 
                 level_zero_dict = json.loads(r.text)
-                CID_count = CID_count + decode_want_list_structure(
-                    conn, queries, peer_table_dict, level_zero_dict
+                found, added, updated = decode_want_list_structure(
+                    want_list_config_dict, peer_table_dict, level_zero_dict
                 )
-                not_found = False
+                connection_failed = False
         except ConnectionError:
-            i = +1
-            logger.exception(f"Satisfy retry iteration {i}")
+            connection_retry += 1
+            logger.debug(f"Connection error iteration {connection_retry}")
+            peer_table_dict["connection_retry_iteration"] = connection_retry
             sleep(int(want_list_config_dict["connect_retry_delay"]))
 
-    return CID_count
+    return found, added, updated
 
 
-def decode_want_list_structure(conn, queries, peer_table_dict, level_zero_dict):
-    """
-    given a peerID, bitswap returns a dictionary of lists of a dictionary of lists
-    in a single block of text
-    """
-
-    CID_count = 0
-    level_one_list = level_zero_dict[
-        "Keys"
-    ]  # this is composed of a dictionary of lists
-
+def decode_want_list_structure(want_list_config_dict, peer_table_dict, level_zero_dict):
+    conn, queries = set_up_sql_operations(want_list_config_dict)
+    found = 0
+    added = 0
+    updated = 0
+    level_one_list = level_zero_dict["Keys"]
     if str(level_one_list) != "None":
         for level_two_dict in level_one_list:
             want_item = level_two_dict["/"]
@@ -148,28 +281,36 @@ def decode_want_list_structure(conn, queries, peer_table_dict, level_zero_dict):
             want_list_table_dict["peer_ID"] = peer_table_dict["peer_ID"]
             want_list_table_dict["object_CID"] = want_item
             want_list_table_dict["insert_DTS"] = DTS
-            want_list_table_dict["last_update_DTS"] = DTS
+
             want_list_table_dict["source_peer_type"] = peer_table_dict["peer_type"]
 
             try:
                 insert_want_list_row(conn, queries, want_list_table_dict)
-            except IntegrityError:
+                conn.commit()
+                added += 1
+            except IntegrityError:  # assumed to be dup key error
                 want_list_entry = select_want_list_entry_by_key(
                     conn, queries, want_list_table_dict
                 )
+                want_list_table_dict["last_update_DTS"] = DTS
                 insert_dt = datetime.fromisoformat(want_list_entry["insert_DTS"])
                 update_dt = datetime.fromisoformat(
                     want_list_table_dict["last_update_DTS"]
                 )
                 delta = update_dt - insert_dt
                 want_list_table_dict["insert_update_delta"] = int(delta.total_seconds())
+
                 update_last_update_DTS(conn, queries, want_list_table_dict)
+                conn.commit()
+                updated += 1
 
-            conn.commit()
-            CID_count = 1
+            found += 1
 
-    return CID_count
+    conn.close()
+    return found, added, updated
 
 
 if __name__ == "__main__":
-    capture_peer_want_lists("NP")
+    freeze_support()
+    set_start_method("spawn")
+    capture_peer_want_lists("PP")
