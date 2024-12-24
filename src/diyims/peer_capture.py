@@ -252,21 +252,17 @@ def decode_findprovs_structure(
                         )
                         promoted += 1
                         conn.commit()
-    if found > 0:
-        if peer_type == "PP" and added != 0:
+
+        if peer_type == "PP":  # wake up every interval for providers
             peer_queue.put_nowait("wake up")
             logger.debug("put wake up")
-        elif peer_table_entry["peer_type"] == "BP" and promoted != 0:
+        if peer_table_entry["peer_type"] == "BP" and promoted != 0:
             peer_queue.put_nowait("promoted from bitswap wake up")
             logger.debug("put promoted from bitswap wake up")
 
         elif peer_table_entry["peer_type"] == "SP" and promoted != 0:
             peer_queue.put_nowait("promoted from swarm wake up")
             logger.debug("put promoted from swarm wake up")
-    else:
-        if peer_type == "PP":
-            peer_queue.put_nowait("wake up")
-            logger.debug("put wake up")
 
     log_string = f"{found} providers found, {added} added and {promoted} promoted."
     logger.info(log_string)
