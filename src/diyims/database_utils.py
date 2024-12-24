@@ -13,6 +13,29 @@ def set_up_sql_operations(config_dict):
     return conn, queries
 
 
+def reset_peer_table_status():
+    from diyims.config_utils import get_want_list_config_dict
+    from diyims.path_utils import get_path_dict
+    from diyims.py_version_dep import get_sql_str
+    import aiosql
+    import sqlite3
+
+    config_dict = get_want_list_config_dict()
+    path_dict = get_path_dict()
+    sql_str = get_sql_str()
+    connect_path = path_dict["db_file"]
+    queries = aiosql.from_str(sql_str, "sqlite3")
+    conn = sqlite3.connect(connect_path, timeout=int(config_dict["sql_timeout"]))
+    conn.row_factory = sqlite3.Row
+
+    queries.reset_peer_table_status(
+        conn,
+    )
+    conn.commit()
+    conn.close()
+    return
+
+
 def insert_peer_row(conn, queries, peer_table_dict):
     queries.insert_peer_row(
         conn,
@@ -165,3 +188,7 @@ def get_header_table_dict():
     header_table_dict["prior_header_CID"] = "null"
     header_table_dict["header_CID"] = "null"
     return header_table_dict
+
+
+if __name__ == "__main__":
+    reset_peer_table_status()

@@ -55,6 +55,10 @@ where peer_ID = :peer_ID
 update peer_table set processing_status = :processing_status
 where peer_ID = :peer_ID
 
+-- name: reset_peer_table_status#
+update peer_table set processing_status = "WLP"
+where processing_status  = "WLX"
+
 -- name: select_peers_by_peer_type
 SELECT
 	peer_ID,

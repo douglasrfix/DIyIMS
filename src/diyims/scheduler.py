@@ -7,6 +7,8 @@ from diyims.ipfs_utils import wait_on_ipfs
 from diyims.logger_utils import get_logger, logger_server_main
 from diyims.config_utils import get_scheduler_config_dict
 from diyims.queue_server import queue_main
+from diyims.database_utils import reset_peer_table_status
+
 
 from multiprocessing import Process, set_start_method, freeze_support
 
@@ -23,6 +25,13 @@ def scheduler_main():
     sleep(wait_seconds)
     logger.info("Startup of Scheduler.")
     logger.info("Shutdown is dependent upon the shutdown of the scheduled tasks")
+
+    reset_peer_table_status_process = Process(target=reset_peer_table_status)
+    sleep(int(scheduler_config_dict["submit_delay"]))
+    reset_peer_table_status_process.start()
+    logger.debug("reset peer table status started.")
+    reset_peer_table_status_process.join()
+    logger.debug("reset peer table status completed.")
 
     queue_server_main_process = Process(target=queue_main)
     sleep(int(scheduler_config_dict["submit_delay"]))
