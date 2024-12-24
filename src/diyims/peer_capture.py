@@ -44,8 +44,6 @@ from diyims.config_utils import get_capture_peer_config_dict
 def capture_peer_main(peer_type):
     capture_peer_config_dict = get_capture_peer_config_dict()
     logger = get_logger(capture_peer_config_dict["log_file"], peer_type)
-    # wait_on_ipfs(logger)
-    # logger.debug("Wait on ipfs completed.")
     wait_seconds = int(capture_peer_config_dict["wait_before_startup"])
     logger.debug(f"Waiting for {wait_seconds} seconds before startup.")
     sleep(wait_seconds)
@@ -216,14 +214,18 @@ def decode_findprovs_structure(
 
                 peer_table_dict = refresh_peer_table_dict()
                 DTS = str(datetime.now(timezone.utc))
-                peer_table_dict["peer_ID"] = responses_dict["ID"]
+                peer_table_dict["peer_ID"] = responses_dict[
+                    "ID"
+                ]  # NOTE: capture a list of addresses and parse
                 peer_table_dict["local_update_DTS"] = DTS
                 peer_table_dict["processing_status"] = "WLP"
                 peer_table_dict["peer_type"] = "PP"
                 found += 1
 
                 try:
-                    insert_peer_row(conn, queries, peer_table_dict)
+                    insert_peer_row(
+                        conn, queries, peer_table_dict
+                    )  # NOTE: add address to peer table
                     conn.commit()
                     added += 1
 
@@ -251,7 +253,7 @@ def decode_findprovs_structure(
                         promoted += 1
                         conn.commit()
     if found > 0:
-        if peer_table_entry["peer_type"] == "PP" and added != 0:
+        if peer_type == "PP" and added != 0:
             peer_queue.put_nowait("wake up")
             logger.debug("put wake up")
         elif peer_table_entry["peer_type"] == "BP" and promoted != 0:
