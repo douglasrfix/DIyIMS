@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a28"
+version = "0.0.0a29"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
