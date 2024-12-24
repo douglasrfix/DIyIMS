@@ -187,7 +187,7 @@ def submitted_capture_peer_want_list_by_id(
     total_added = 0
     total_updated = 0
     NCW_count = 0
-
+    # NOTE: connect to peer address
     while (
         samples < number_of_samples_per_interval
         and zero_sample_count <= max_zero_sample_count
