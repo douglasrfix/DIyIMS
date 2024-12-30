@@ -1,13 +1,11 @@
 import json
 from datetime import datetime
-from requests.exceptions import ConnectionError
 from time import sleep
-import requests
 from sqlite3 import IntegrityError
 from multiprocessing import Pool, set_start_method, freeze_support
 from multiprocessing.managers import BaseManager
 from queue import Empty
-
+from diyims.requests_utils import execute_request
 from diyims.database_utils import (
     insert_want_list_row,
     select_want_list_entry_by_key,
@@ -115,13 +113,15 @@ def capture_want_lists_for_peers(
     connU, queries = set_up_sql_operations(
         want_list_config_dict
     )  # to avoid locking conflict with the read
-    rows_of_peers = queries.select_peers_by_peer_type(connR, peer_type)
+    rows_of_peers = queries.select_peers_by_peer_type_status(connR, peer_type)
 
     for peer in rows_of_peers:
         peer_table_dict = refresh_peer_table_dict()
         peer_table_dict["peer_ID"] = peer["peer_ID"]
         peer_table_dict["peer_type"] = peer["peer_type"]
-        peer_table_dict["processing_status"] = "WLX"  # set to suppress resubmission
+        peer_table_dict["processing_status"] = (
+            "WLP"  # set to suppress resubmission from WLR -> WLP
+        )
         update_peer_table_status(connU, queries, peer_table_dict)
         connU.commit()
         pool.apply_async(
@@ -150,27 +150,33 @@ def submitted_capture_peer_want_list_by_id(
     logger = get_logger_task(peer_type, peer_ID)
     logger.debug(f"Want list capture for {peer_ID} of type {peer_type} started.")
 
+    conn, queries = set_up_sql_operations(want_list_config_dict)
+    peer_table_dict["processing_status"] = "WLX"
+    update_peer_table_status(conn, queries, peer_table_dict)
+    conn.commit()
+    conn.close
+
     queue_server = BaseManager(address=("127.0.0.1", 50000), authkey=b"abc")
     if peer_type == "PP":
         queue_server.register("get_provider_queue")
         queue_server.connect()
         peer_queue = queue_server.get_provider_queue()
         max_zero_sample_count = int(want_list_config_dict["provider_zero_sample_count"])
-        peer_table_dict["processing_status"] = "WLP"
+        peer_table_dict["processing_status"] = "WLR"
 
     elif peer_type == "BP":
         queue_server.register("get_bitswap_queue")
         queue_server.connect()
         peer_queue = queue_server.get_bitswap_queue()
         max_zero_sample_count = int(want_list_config_dict["bitswap_zero_sample_count"])
-        peer_table_dict["processing_status"] = "WLB"
+        peer_table_dict["processing_status"] = "WLR"
 
     elif peer_type == "SP":
         queue_server.register("get_swarm_queue")
         queue_server.connect()
         peer_queue = queue_server.get_swarm_queue()
         max_zero_sample_count = int(want_list_config_dict["bitswap_zero_sample_count"])
-        peer_table_dict["processing_status"] = "WLS"
+        peer_table_dict["processing_status"] = "WLR"
 
     # this is one sample interval for one peer
     number_of_samples_per_interval = int(
@@ -187,7 +193,7 @@ def submitted_capture_peer_want_list_by_id(
     total_added = 0
     total_updated = 0
     NCW_count = 0
-    # NOTE: connect to peer address
+
     while (
         samples < number_of_samples_per_interval
         and zero_sample_count <= max_zero_sample_count
@@ -200,7 +206,7 @@ def submitted_capture_peer_want_list_by_id(
         total_added += added
         total_updated += updated
 
-        if found == 0:  # provider processing never ends
+        if found == 0:  # provider processing ignores zero wanTlist items
             zero_sample_count += 1
         else:
             zero_sample_count -= 1
@@ -209,7 +215,7 @@ def submitted_capture_peer_want_list_by_id(
             zero_sample_count == max_zero_sample_count
         ):  # sampling permanently completed due to no want list available for peer
             conn, queries = set_up_sql_operations(want_list_config_dict)
-            peer_table_dict["processing_status"] = "NCW"
+            peer_table_dict["processing_status"] = "WLZ"
             update_peer_table_status(conn, queries, peer_table_dict)
             conn.commit()
             conn.close
@@ -219,7 +225,8 @@ def submitted_capture_peer_want_list_by_id(
     if zero_sample_count < max_zero_sample_count:  # sampling interval completed
         conn, queries = set_up_sql_operations(
             want_list_config_dict
-        )  # set from WLX to whatever so sampling will be continued next interval
+        )  # set from WLX to WLR so sampling will be continued next interval
+        peer_table_dict["processing_status"] = "WLR"
         update_peer_table_status(conn, queries, peer_table_dict)
         conn.commit()
         conn.close
@@ -237,32 +244,27 @@ def capture_peer_want_list_by_id(
     peer_table_dict,
 ):  # This is one sample for a peer
     url_dict = get_url_dict()
-    key_arg = {"peer": peer_table_dict["peer_ID"]}
-    connection_retry = 0
-    connection_failed = True
+    param = {"peer": peer_table_dict["peer_ID"]}
     found = 0
     added = 0
     updated = 0
-    while (
-        connection_retry < int(want_list_config_dict["connect_retries"])
-        and connection_failed
-    ):
-        try:
-            with requests.post(
-                url_dict["want_list"], params=key_arg, stream=False
-            ) as r:
-                r.raise_for_status()
 
-                level_zero_dict = json.loads(r.text)
-                found, added, updated = decode_want_list_structure(
-                    want_list_config_dict, peer_table_dict, level_zero_dict
-                )
-                connection_failed = False
-        except ConnectionError:
-            connection_retry += 1
-            logger.debug(f"Connection error iteration {connection_retry}")
-            peer_table_dict["connection_retry_iteration"] = connection_retry
-            sleep(int(want_list_config_dict["connect_retry_delay"]))
+    url_key = "want_list"
+    config_dict = want_list_config_dict
+    file = "none"
+    response = execute_request(
+        logger,
+        url_dict,
+        url_key,
+        config_dict,
+        param,
+        file,
+    )
+
+    level_zero_dict = json.loads(response.text)
+    found, added, updated = decode_want_list_structure(
+        want_list_config_dict, peer_table_dict, level_zero_dict
+    )
 
     return found, added, updated
 

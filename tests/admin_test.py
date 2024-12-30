@@ -63,6 +63,15 @@ def test_ipfs_purge():
     assert result.exit_code == 0
 
 
+# @pytest.mark.skip(reason="purge")
+def test_refresh_name():
+    """testing  initializing database with previous initialization"""
+    command_string = "refresh-name"
+    result = runner.invoke(app, shlex.split(command_string))
+    print(result.stdout.rstrip())
+    assert result.exit_code == 0
+
+
 @pytest.mark.skip(reason="danger")
 # @pytest.mark.setup
 def test_cli_l2_c_danger():

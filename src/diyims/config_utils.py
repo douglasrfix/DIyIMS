@@ -224,6 +224,8 @@ def get_ipfs_config_dict():
     try:
         ipfs_config_dict = {}
         ipfs_config_dict["agent"] = parser["IPFS"]["agent"]
+        ipfs_config_dict["sql_timeout"] = parser["IPFS"]["sql_timeout"]
+        ipfs_config_dict["log_file"] = parser["IPFS"]["log_file"]
         ipfs_config_dict["connect_retries"] = parser["IPFS"]["connect_retries"]
         ipfs_config_dict["connect_retry_delay"] = parser["IPFS"]["connect_retry_delay"]
 
@@ -242,6 +244,8 @@ def get_ipfs_config_dict():
 
         parser["IPFS"] = {}
         parser["IPFS"]["agent"] = json_dict["AgentVersion"]
+        parser["IPFS"]["sql_timeout"] = "60"
+        parser["IPFS"]["log_file"] = "ipfs.log"
         parser["IPFS"]["connect_retries"] = "30"
         parser["IPFS"]["connect_retry_delay"] = "10"
 
@@ -250,6 +254,8 @@ def get_ipfs_config_dict():
 
         ipfs_config_dict = {}
         ipfs_config_dict["agent"] = parser["IPFS"]["agent"]
+        ipfs_config_dict["log_file"] = parser["IPFS"]["log_file"]
+        ipfs_config_dict["sql_timeout"] = parser["IPFS"]["sql_timeout"]
         ipfs_config_dict["connect_retries"] = parser["IPFS"]["connect_retries"]
         ipfs_config_dict["connect_retry_delay"] = parser["IPFS"]["connect_retry_delay"]
 

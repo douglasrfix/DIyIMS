@@ -15,7 +15,7 @@ from diyims import install_cli
 from diyims import beacon_cli
 from diyims.scheduler import scheduler_main
 from diyims.ipfs_utils import force_purge
-from diyims.ipfs_utils import purge
+from diyims.ipfs_utils import purge, refresh_network_name
 from diyims.queue_server import queue_main
 from diyims.peer_capture import capture_peer_main
 from diyims.capture_want_lists import capture_peer_want_lists
@@ -40,6 +40,18 @@ def danger():
     """
 
     force_purge()
+
+
+@app.command()
+def refresh_name():
+    """
+    Populates the Network_Peers table with a single entry to reflect this
+    Network Node.
+    If a pre-existing installation exists it will simply return with an error
+    message
+    """
+
+    refresh_network_name()
 
 
 @app.command()

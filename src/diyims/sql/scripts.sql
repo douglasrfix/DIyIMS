@@ -56,10 +56,10 @@ update peer_table set processing_status = :processing_status
 where peer_ID = :peer_ID
 
 -- name: reset_peer_table_status#
-update peer_table set processing_status = "WLP"
-where processing_status  = "WLX"
+update peer_table set processing_status = "WLR"
+where processing_status  = "WLX" or processing_status = "WLP"
 
--- name: select_peers_by_peer_type
+-- name: select_peers_by_peer_type_status
 SELECT
 	peer_ID,
 	IPNS_name,
@@ -76,8 +76,7 @@ SELECT
 FROM
    peer_table
 
-where peer_type = :peer_type and (processing_status = "null" or processing_status = "WLP" or
-	processing_status = "WLB" or processing_status = "WLS")
+where peer_type = :peer_type and (processing_status = "WLR" or processing_status = "ADR")
 
 -- name: select_peer_table_entry_by_key^
 SELECT

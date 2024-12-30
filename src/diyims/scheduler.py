@@ -1,6 +1,6 @@
 from time import sleep
 
-from diyims.beacon import beacon_main, satisfy_main
+from diyims.beacon import beacon_main, satisfy_main, purge_want_items
 from diyims.peer_capture import capture_peer_main
 from diyims.capture_want_lists import capture_peer_want_lists
 from diyims.ipfs_utils import wait_on_ipfs
@@ -25,6 +25,13 @@ def scheduler_main():
     sleep(wait_seconds)
     logger.info("Startup of Scheduler.")
     logger.info("Shutdown is dependent upon the shutdown of the scheduled tasks")
+
+    purge_want_items_process = Process(target=purge_want_items)
+    sleep(int(scheduler_config_dict["submit_delay"]))
+    purge_want_items_process.start()
+    logger.debug("purge want items process started.")
+    purge_want_items_process.join()
+    logger.debug("purge want items process completed.")
 
     reset_peer_table_status_process = Process(target=reset_peer_table_status)
     sleep(int(scheduler_config_dict["submit_delay"]))
