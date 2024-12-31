@@ -76,7 +76,7 @@ SELECT
 FROM
    peer_table
 
-where peer_type = :peer_type and (processing_status = "WLR" or processing_status = "ADR")
+where peer_type = :peer_type and (processing_status = "WLR")
 
 -- name: select_peer_table_entry_by_key^
 SELECT

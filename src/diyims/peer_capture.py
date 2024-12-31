@@ -264,6 +264,9 @@ def decode_findprovs_structure(
                             conn.commit()
                             connect_flag = True
 
+                        elif peer_table_entry["peer_type"] == "LP":
+                            logger.debug("Local peer was identified as a provider")
+
                     if connect_flag is True:
                         param = {"arg": peer_address + "/p2p/" + responses_dict["ID"]}
                         url_key = "connect"
@@ -300,8 +303,6 @@ def decode_findprovs_structure(
     elif original_peer_type == "SP":
         peer_queue.put_nowait("promoted from swarm wake up")
         logger.debug("put promoted from swarm wake up")
-    elif original_peer_type == "LP":
-        logger.debug("Local peer is identified as a provider")
 
     log_string = f"{found} providers found, {added} added and {promoted} promoted."
     logger.info(log_string)
