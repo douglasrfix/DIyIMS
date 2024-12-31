@@ -268,7 +268,9 @@ def decode_findprovs_structure(
                         peer_table_entry = select_peer_table_entry_by_key(
                             conn, queries, peer_table_dict
                         )
-                        if peer_table_entry["peer_type"] == "BP":
+                        peer_type = peer_table_dict["peer_type"]
+
+                        if peer_type == "BP":
                             peer_table_dict["peer_type"] = "PP"
                             peer_table_dict["processing_status"] = "WLR"
                             peer_table_dict["local_update_DTS"] = DTS
@@ -290,7 +292,7 @@ def decode_findprovs_structure(
                             conn.commit()
                             flag = True
 
-                        if flag and adr is True:
+                        if flag is True:
                             param = {
                                 "arg": peer_address + "/p2p/" + responses_dict["ID"]
                             }
@@ -322,11 +324,11 @@ def decode_findprovs_structure(
         peer_queue.put_nowait("wake up")
         logger.debug("put wake up")
 
-    if peer_table_entry["peer_type"] == "BP" and promoted != 0:
+    if peer_type == "BP" and promoted != 0:
         peer_queue.put_nowait("promoted from bitswap wake up")
         logger.debug("put promoted from bitswap wake up")
 
-    elif peer_table_entry["peer_type"] == "SP" and promoted != 0:
+    elif peer_type == "SP" and promoted != 0:
         peer_queue.put_nowait("promoted from swarm wake up")
         logger.debug("put promoted from swarm wake up")
 

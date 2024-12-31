@@ -1,6 +1,6 @@
 from time import sleep
 import requests
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, HTTPError
 
 
 def execute_request(logger, url_dict, url_key, config_dict, param, file):
@@ -20,6 +20,8 @@ def execute_request(logger, url_dict, url_key, config_dict, param, file):
                 ) as r:
                     r.raise_for_status()
                     not_found = False
+        except HTTPError:
+            logger.exception(param)
         except ConnectionError:
             logger.exception()
             sleep(int(config_dict["connect_retry_delay"]))
