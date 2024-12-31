@@ -196,15 +196,14 @@ def decode_findprovs_structure(
     queries,
     capture_peer_config_dict,
     url_dict,
-    r,
+    response,
     peer_queue,
 ):
     found = 0
     added = 0
     promoted = 0
-    peer_type = "PP"
 
-    for line in r.iter_lines():
+    for line in response.iter_lines():
         if line:
             decoded_line = line.decode("utf-8")
             line_dict = json.loads(decoded_line)
@@ -215,122 +214,94 @@ def decode_findprovs_structure(
                     1 : responses_string_len - 1
                 ]
                 responses_dict = json.loads(trimmed_responses_string.replace("'", '"'))
-
-                peer_table_dict = refresh_peer_table_dict()
-                DTS = str(datetime.now(timezone.utc))
-                peer_table_dict["processing_status"] = "WLR"
-                peer_table_dict["peer_ID"] = responses_dict["ID"]
-                adr = False
                 addrs_list = responses_dict["Addrs"]
                 try:
-                    peer_address = addrs_list[
-                        0
-                    ]  # the source for this is dht which may be present with out an address
-                    adr = True
+                    peer_address = addrs_list[0]
+                    # the source for this is dht which may be present with out an address
+                    address_available = True
 
                 except IndexError:
                     logger.debug("No Address 1")
+                    address_available = False
 
-                peer_table_dict["local_update_DTS"] = DTS
-                peer_table_dict["peer_type"] = "PP"
                 found += 1
 
-                if adr is True:
+                if address_available is True:
+                    peer_table_dict = refresh_peer_table_dict()
+                    DTS = str(datetime.now(timezone.utc))
+                    peer_table_dict["processing_status"] = "WLR"
+                    peer_table_dict["peer_ID"] = responses_dict["ID"]
+                    peer_table_dict["local_update_DTS"] = DTS
+                    peer_table_dict["peer_type"] = "PP"
+
                     try:
                         insert_peer_row(conn, queries, peer_table_dict)
                         conn.commit()
                         added += 1
-                        if peer_table_dict["processing_status"] == "WLR":
-                            param = {
-                                "arg": peer_address + "/p2p/" + responses_dict["ID"]
-                            }
-                            url_key = "connect"
-                            config_dict = capture_peer_config_dict
-                            file = "none"
-                            execute_request(
-                                logger,
-                                url_dict,
-                                url_key,
-                                config_dict,
-                                param,
-                                file,
-                            )
-
-                            url_key = "peering_add"
-                            config_dict = capture_peer_config_dict
-                            file = "none"
-                            execute_request(
-                                logger, url_dict, url_key, config_dict, param, file
-                            )
+                        connect_flag = True
+                        original_peer_type = peer_table_dict["peer_type"]
 
                     except IntegrityError:  # Database
-                        flag = False
+                        connect_flag = False
                         peer_table_entry = select_peer_table_entry_by_key(
                             conn, queries, peer_table_dict
                         )
-                        peer_type = peer_table_dict["peer_type"]
+                        original_peer_type = peer_table_entry["peer_type"]
 
-                        if peer_type == "BP":
-                            peer_table_dict["peer_type"] = "PP"
-                            peer_table_dict["processing_status"] = "WLR"
-                            peer_table_dict["local_update_DTS"] = DTS
+                        if peer_table_entry["peer_type"] == "BP":
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )
                             promoted += 1
                             conn.commit()
-                            flag = True
+                            connect_flag = True
 
                         elif peer_table_entry["peer_type"] == "SP":
-                            peer_table_dict["peer_type"] = "PP"
-                            peer_table_dict["processing_status"] = "WLR"
-                            peer_table_dict["local_update_DTS"] = DTS
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )
                             promoted += 1
                             conn.commit()
-                            flag = True
+                            connect_flag = True
 
-                        if flag is True:
-                            param = {
-                                "arg": peer_address + "/p2p/" + responses_dict["ID"]
-                            }
-                            url_key = "connect"
-                            config_dict = capture_peer_config_dict
-                            file = "none"
-                            execute_request(
-                                logger,
-                                url_dict,
-                                url_key,
-                                config_dict,
-                                param,
-                                file,
-                            )
+                    if connect_flag is True:
+                        param = {"arg": peer_address + "/p2p/" + responses_dict["ID"]}
+                        url_key = "connect"
+                        config_dict = capture_peer_config_dict
+                        file = "none"
+                        execute_request(
+                            logger,
+                            url_dict,
+                            url_key,
+                            config_dict,
+                            param,
+                            file,
+                        )
 
-                            url_key = "peering_add"
-                            config_dict = capture_peer_config_dict
-                            file = "none"
-                            execute_request(
-                                logger,
-                                url_dict,
-                                url_key,
-                                config_dict,
-                                param,
-                                file,
-                            )
+                        url_key = "peering_add"
+                        file = "none"
+                        execute_request(
+                            logger,
+                            url_dict,
+                            url_key,
+                            config_dict,
+                            param,
+                            file,
+                        )
 
-    if peer_type == "PP":  # wake up every interval for providers
+    if original_peer_type == "PP":  # wake up every interval for providers
         peer_queue.put_nowait("wake up")
         logger.debug("put wake up")
 
-    if peer_type == "BP" and promoted != 0:
+    elif original_peer_type == "BP":
         peer_queue.put_nowait("promoted from bitswap wake up")
         logger.debug("put promoted from bitswap wake up")
 
-    elif peer_type == "SP" and promoted != 0:
+    elif original_peer_type == "SP":
         peer_queue.put_nowait("promoted from swarm wake up")
         logger.debug("put promoted from swarm wake up")
+    elif original_peer_type == "LP":
+        logger.debug("Local peer is identified as a provider")
 
     log_string = f"{found} providers found, {added} added and {promoted} promoted."
     logger.info(log_string)

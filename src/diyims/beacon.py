@@ -49,7 +49,6 @@ def beacon_main():
     beacon_queue = queue_server.get_beacon_queue()
     while target_DT > current_DT and beacon_interval < max_intervals:
         for _ in range(int(beacon_config_dict["number_of_periods"])):
-            # NOTE: put process here
             beacon_CID, want_item_file = create_beacon_CID(logger, beacon_config_dict)
             satisfy_dict["status"] = "run"
             satisfy_dict["wait_time"] = beacon_config_dict["short_period_seconds"]
@@ -85,9 +84,7 @@ def create_beacon_CID(logger, beacon_config_dict):
     path_dict = get_path_dict()
 
     conn, queries = set_up_sql_operations(beacon_config_dict)
-    header_row = queries.select_last_peer_table_entry_header(
-        conn
-    )  # NOTE: needs to point to network name
+    header_row = queries.select_last_peer_table_entry_pointer(conn)
 
     want_item_dict = refresh_want_item_dict()
     want_item_dict["want_CID"] = header_row["object_CID"]
@@ -201,7 +198,7 @@ def satisfy_beacon(logger, satisfy_config_dict, want_item_file):
 
 
 def purge_want_items():
-    start_date = date.today() - timedelta(days=30)  # NOTE: Put in config
+    start_date = date.today() - timedelta(days=30)
     end_date = date.today()
 
     path_dict = get_path_dict()

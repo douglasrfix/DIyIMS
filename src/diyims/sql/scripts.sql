@@ -136,7 +136,7 @@ ORDER BY
 	insert_DTS DESC
 ;
 
--- name: select_last_peer_table_entry_header^
+-- name: select_last_peer_table_entry_pointer^
 SELECT
  	version,
    	object_CID,

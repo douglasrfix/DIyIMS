@@ -21,7 +21,7 @@ from diyims.logger_utils import get_logger, get_logger_task
 from diyims.config_utils import get_want_list_config_dict
 
 
-def capture_peer_want_lists(peer_type):
+def capture_peer_want_lists(peer_type):  # each peer type runs in its own process
     freeze_support()
     try:
         set_start_method("spawn")
@@ -73,8 +73,10 @@ def capture_peer_want_lists(peer_type):
         maxtasks = int(want_list_config_dict["swarm_maxtasks"])
 
     with Pool(processes=pool_workers, maxtasksperchild=maxtasks) as pool:
+        # used to throttle how many peers are processed concurrently
         current_DT = datetime.now()
         while target_DT > current_DT:
+            # find any available peers that were previously captured before waiting for new ones
             peers_processed = capture_want_lists_for_peers(
                 logger,
                 want_list_config_dict,
@@ -86,7 +88,9 @@ def capture_peer_want_lists(peer_type):
             logger.debug(log_string)
             interval_count += 1
             try:
-                msg = peer_queue.get(timeout=wait_for_new_peer)
+                msg = peer_queue.get(
+                    timeout=wait_for_new_peer
+                )  # comes from peer capture process
                 logger.debug(msg)
             except Empty:
                 logger.debug("Queue empty")
@@ -110,9 +114,8 @@ def capture_want_lists_for_peers(
 ):
     peers_processed = 0
     connR, queries = set_up_sql_operations(want_list_config_dict)
-    connU, queries = set_up_sql_operations(
-        want_list_config_dict
-    )  # to avoid locking conflict with the read
+    connU, queries = set_up_sql_operations(want_list_config_dict)
+    # dual connections avoid locking conflict with the read
     rows_of_peers = queries.select_peers_by_peer_type_status(connR, peer_type)
 
     for peer in rows_of_peers:
@@ -120,7 +123,7 @@ def capture_want_lists_for_peers(
         peer_table_dict["peer_ID"] = peer["peer_ID"]
         peer_table_dict["peer_type"] = peer["peer_type"]
         peer_table_dict["processing_status"] = (
-            "WLP"  # set to suppress resubmission from WLR -> WLP
+            "WLP"  # suppress resubmission by WLR -> WLP
         )
         update_peer_table_status(connU, queries, peer_table_dict)
         connU.commit()
@@ -152,6 +155,7 @@ def submitted_capture_peer_want_list_by_id(
 
     conn, queries = set_up_sql_operations(want_list_config_dict)
     peer_table_dict["processing_status"] = "WLX"
+    # indicate processing is active for this peer WLP -> WLX
     update_peer_table_status(conn, queries, peer_table_dict)
     conn.commit()
     conn.close
@@ -197,6 +201,7 @@ def submitted_capture_peer_want_list_by_id(
     while (
         samples < number_of_samples_per_interval
         and zero_sample_count <= max_zero_sample_count
+        # provider peers have the threshold set to 1440 to provide an infinite processing cycle
     ):
         sleep(wait_seconds)
         found, added, updated = capture_peer_want_list_by_id(
@@ -206,7 +211,7 @@ def submitted_capture_peer_want_list_by_id(
         total_added += added
         total_updated += updated
 
-        if found == 0:  # provider processing ignores zero wanTlist items
+        if found == 0:
             zero_sample_count += 1
         else:
             zero_sample_count -= 1
@@ -225,7 +230,7 @@ def submitted_capture_peer_want_list_by_id(
     if zero_sample_count < max_zero_sample_count:  # sampling interval completed
         conn, queries = set_up_sql_operations(
             want_list_config_dict
-        )  # set from WLX to WLR so sampling will be continued next interval
+        )  # set from WLX to WLR so sampling will be continued
         peer_table_dict["processing_status"] = "WLR"
         update_peer_table_status(conn, queries, peer_table_dict)
         conn.commit()
