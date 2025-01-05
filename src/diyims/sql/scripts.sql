@@ -148,7 +148,7 @@ SELECT
 FROM
    header_table
 
-WHERE object_type = "peer_table_entry"
+WHERE object_type = "IPNS_name"
 
 ORDER BY
 
@@ -178,10 +178,15 @@ FROM
 
 ;
 
-
-
-
 -- name: select_want_list_entry_by_key^
 select peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type
 from want_list_table
 where peer_ID = :peer_ID and object_CID = :object_CID
+;
+
+-- name: select_filter_want_list_by_start_stop
+select peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type
+from want_list_table
+where last_update_DTS >= :query_start_dts and last_update_DTS <= :query_stop_dts
+	and (insert_update_delta < 294 and insert_update_delta > 285)
+;

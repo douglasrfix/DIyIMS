@@ -76,3 +76,5 @@
 # [x]: add wait for ipfs function
 # [x]: get time to shut sown from config
 # [x]: add number of intervals to the shutdown criteria
+# []: add scheduling element to peer table
+# []: add provider monitoring data element to peer table

@@ -300,7 +300,7 @@ def get_capture_peer_config_dict():
 
     except KeyError:
         parser["Capture_Peer"] = {}
-        parser["Capture_Peer"]["capture_interval_delay"] = "60"
+        parser["Capture_Peer"]["capture_interval_delay"] = "600"
         parser["Capture_Peer"]["sql_timeout"] = "60"
         parser["Capture_Peer"]["wait_before_startup"] = "0"
         parser["Capture_Peer"]["max_intervals"] = "1440"
@@ -502,7 +502,7 @@ def get_want_list_config_dict():
         parser["Want_List"]["samples_per_minute"] = "6"
         parser["Want_List"]["number_of_samples_per_interval"] = "60"
         parser["Want_List"]["sql_timeout"] = "60"
-        parser["Want_List"]["wait_before_startup"] = "0"
+        parser["Want_List"]["wait_before_startup"] = "30"
         parser["Want_List"]["max_intervals"] = "1440"
         parser["Want_List"]["shutdown_time"] = "22:0:0"
         parser["Want_List"]["server_log_file"] = "server.log"

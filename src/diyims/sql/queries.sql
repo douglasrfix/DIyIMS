@@ -1,9 +1,10 @@
-select peer_ID, source_peer_type, insert_DTS, last_update_DTS, insert_update_delta, 'L' as period_length
+select peer_ID, source_peer_type, insert_DTS, last_update_DTS, insert_update_delta
  from want_list_table
- where (source_peer_type = "NP")
- and (insert_update_delta < 115 and insert_update_delta > 105)
+ where (last_update_DTS <= "2025-01-01 04:03:00.000000+00:00")
+ and (last_update_DTS >= "2025-01-01 03:03:00.000000+00:00")
+ and (insert_update_delta < 294 and insert_update_delta > 285)
+;
 
-union
 
 select peer_ID, source_peer_type, insert_DTS, last_update_DTS, insert_update_delta, 'S'
  from want_list_table

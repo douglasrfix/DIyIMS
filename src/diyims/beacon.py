@@ -1,4 +1,4 @@
-"""# NOTE:
+"""
 The beacon length should stand out from regular traffic.(2)
 This will be? measured by capturing stats from the swarm (1)
 The stats captured will also be used to create timing information (3)
@@ -87,7 +87,7 @@ def create_beacon_CID(logger, beacon_config_dict):
     header_row = queries.select_last_peer_table_entry_pointer(conn)
 
     want_item_dict = refresh_want_item_dict()
-    want_item_dict["want_CID"] = header_row["object_CID"]
+    want_item_dict["IPNS_name"] = header_row["object_CID"]
     want_item_dict["DTS"] = get_DTS()
 
     conn.close()

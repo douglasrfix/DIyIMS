@@ -42,7 +42,7 @@ def ipfs_header_create(DTS, object_CID, object_type):
         header_CID = "null"
 
     header_json_file = path_dict["header_file"]
-    add_params = {"only-hash": "false", "pin": "true"}
+    add_params = {"cid-version": 1, "only-hash": "false", "pin": "true"}
 
     with open(header_json_file, "w") as write_file:
         json.dump(header_dict, write_file, indent=4)

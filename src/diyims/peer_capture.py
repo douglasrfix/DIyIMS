@@ -248,7 +248,7 @@ def decode_findprovs_structure(
                         )
                         original_peer_type = peer_table_entry["peer_type"]
 
-                        if peer_table_entry["peer_type"] == "BP":
+                        if original_peer_type == "BP":
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )
@@ -256,7 +256,7 @@ def decode_findprovs_structure(
                             conn.commit()
                             connect_flag = True
 
-                        elif peer_table_entry["peer_type"] == "SP":
+                        elif original_peer_type == "SP":
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )
@@ -264,7 +264,7 @@ def decode_findprovs_structure(
                             conn.commit()
                             connect_flag = True
 
-                        elif peer_table_entry["peer_type"] == "LP":
+                        elif original_peer_type == "LP":
                             logger.debug("Local peer was identified as a provider")
 
                     if connect_flag is True:

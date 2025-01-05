@@ -21,9 +21,11 @@ def execute_request(logger, url_dict, url_key, config_dict, param, file):
                     r.raise_for_status()
                     not_found = False
         except HTTPError:
-            logger.exception(param)
+            if logger != "none":
+                logger.exception(param)
         except ConnectionError:
-            logger.exception()
+            if logger != "none":
+                logger.exception()
             sleep(int(config_dict["connect_retry_delay"]))
             i += 1
     return r

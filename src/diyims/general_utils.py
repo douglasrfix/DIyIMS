@@ -21,8 +21,8 @@ def get_network_name():
     return network_name
 
 
-def get_DTS():  # NOTE: rename to dts utc
-    DTS = str(datetime.now(timezone.utc))
+def get_DTS():
+    DTS = datetime.now(timezone.utc).isoformat()
 
     return DTS
 

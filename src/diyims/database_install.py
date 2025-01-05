@@ -109,13 +109,11 @@ def init():  # NOTE: add wait on ipfs
     print("Published first header")
     print(f"IPNS_name : '{IPNS_name}'")
 
-    """
     object_CID = IPNS_name
     object_type = "IPNS_name"
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
-
-
+    """
     Create the initial peer table entry for this peer.
     """
 
@@ -134,11 +132,11 @@ def init():  # NOTE: add wait on ipfs
     peer_table_dict["execution_platform"] = os_platform
     peer_table_dict["python_version"] = python_version
     peer_table_dict["IPFS_agent"] = IPFS_agent
-    peer_table_dict["processing_status"] = "NA"
-    peer_table_dict["peer_type"] = "LP"  # local peer
+    peer_table_dict["processing_status"] = "NPC"  # Normal peer processing complete
+    peer_table_dict["peer_type"] = "LP"  # local provider peer
 
     peer_file = path_dict["peer_file"]
-    add_params = {"only-hash": "false", "pin": "true"}
+    add_params = {"cid-version": 1, "only-hash": "false", "pin": "true"}
     with open(peer_file, "w") as write_file:
         json.dump(peer_table_dict, write_file, indent=4)
 
@@ -149,9 +147,7 @@ def init():  # NOTE: add wait on ipfs
         json_dict = json.loads(r.text)
 
     object_CID = json_dict["Hash"]
-    object_type = (
-        "peer_table_entry"  # NOTE: distinguish between local and remote entries
-    )
+    object_type = "peer_table_entry"  # NOTE: distinguish between local and remote entries in table
     header_CID, IPNS_name = ipfs_header_create(DTS, object_CID, object_type)
 
     print(f"Second header for the peer_table CID '{header_CID}'")
@@ -160,7 +156,7 @@ def init():  # NOTE: add wait on ipfs
     network_table_dict = refresh_network_table_dict()
     network_table_dict["network_name"] = import_car()
     network_name = network_table_dict["network_name"]
-    print(f"network_name : '{network_name}'")
+    print(f"network_name : '{network_name}'")  # NOTE: use logging
 
     object_CID = network_table_dict[
         "network_name"
