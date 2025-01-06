@@ -80,10 +80,20 @@ def install(
 
 
 @app.command()
-def create_schema():
+def create_schema(
+    roaming: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Set alternate Roaming value.",
+            show_default=False,
+            rich_help_panel="Install Options",
+        ),
+    ] = "Roaming",
+):
     """Initializes the database to a known state. If a pre-existing
     installation exists it will simply return with an error message
     """
+    os.environ["ROAMING"] = roaming
     try:
         create()
     except CreateSchemaError as error:
@@ -98,13 +108,23 @@ def create_schema():
 
 
 @app.command()
-def init_database():
+def init_database(
+    roaming: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Set alternate Roaming value.",
+            show_default=False,
+            rich_help_panel="Install Options",
+        ),
+    ] = "Roaming",
+):
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
 
     """
+    os.environ["ROAMING"] = roaming
     try:
         init()
 
