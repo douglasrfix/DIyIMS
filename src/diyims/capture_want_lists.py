@@ -13,7 +13,10 @@ from diyims.database_utils import (
     refresh_peer_table_dict,
     refresh_want_list_table_dict,
     set_up_sql_operations,
-    update_peer_table_status,
+    update_peer_table_status_WLR,
+    update_peer_table_status_WLP,
+    update_peer_table_status_WLX,
+    update_peer_table_status_WLZ,
 )
 from diyims.general_utils import get_DTS, get_shutdown_target
 from diyims.ipfs_utils import get_url_dict
@@ -113,6 +116,7 @@ def capture_want_lists_for_peers(
     pool,
 ):
     peers_processed = 0
+    DTS = get_DTS()
     connR, queries = set_up_sql_operations(want_list_config_dict)
     connU, queries = set_up_sql_operations(want_list_config_dict)
     # dual connections avoid locking conflict with the read
@@ -125,7 +129,9 @@ def capture_want_lists_for_peers(
         peer_table_dict["processing_status"] = (
             "WLP"  # suppress resubmission by WLR -> WLP
         )
-        update_peer_table_status(connU, queries, peer_table_dict)
+        peer_table_dict["local_update_DTS"] = DTS
+
+        update_peer_table_status_WLP(connU, queries, peer_table_dict)
         connU.commit()
         pool.apply_async(
             submitted_capture_peer_want_list_by_id,
@@ -154,9 +160,11 @@ def submitted_capture_peer_want_list_by_id(
     logger.debug(f"Want list capture for {peer_ID} of type {peer_type} started.")
 
     conn, queries = set_up_sql_operations(want_list_config_dict)
+    DTS = get_DTS()
     peer_table_dict["processing_status"] = "WLX"
+    peer_table_dict["local_update_DTS"] = DTS
     # indicate processing is active for this peer WLP -> WLX
-    update_peer_table_status(conn, queries, peer_table_dict)
+    update_peer_table_status_WLX(conn, queries, peer_table_dict)
     conn.commit()
     conn.close
 
@@ -221,10 +229,9 @@ def submitted_capture_peer_want_list_by_id(
             zero_sample_count == max_zero_sample_count
         ):  # sampling permanently completed due to no want list available for peer
             conn, queries = set_up_sql_operations(want_list_config_dict)
-            peer_table_dict["processing_status"] = (
-                "WLZ"  # NOTE: set local update dts with status change
-            )
-            update_peer_table_status(conn, queries, peer_table_dict)
+            peer_table_dict["processing_status"] = "WLZ"
+            peer_table_dict["local_update_DTS"] = DTS
+            update_peer_table_status_WLZ(conn, queries, peer_table_dict)
             conn.commit()
             conn.close
             NCW_count += 1  # BUG: how does this get to 2?
@@ -236,7 +243,8 @@ def submitted_capture_peer_want_list_by_id(
             want_list_config_dict
         )  # set from WLX to WLR so sampling will be continued
         peer_table_dict["processing_status"] = "WLR"
-        update_peer_table_status(conn, queries, peer_table_dict)
+        peer_table_dict["local_update_DTS"] = DTS
+        update_peer_table_status_WLR(conn, queries, peer_table_dict)
         conn.commit()
         conn.close
 

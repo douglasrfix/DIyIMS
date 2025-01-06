@@ -7,6 +7,7 @@ need the if __name__ == "__main__":.
 
 """
 
+import os
 import typer
 from typing import Optional
 from typing_extensions import Annotated
@@ -99,12 +100,23 @@ def capture_bitswap_peers():
 
 
 @app.command()
-def run_scheduler():
+def run_scheduler(
+    roaming: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Set alternate Roaming value.",
+            show_default=False,
+            rich_help_panel="Install Options",
+        ),
+    ] = "Roaming",
+):
     """Populates the Network_Peers table with a single entry to reflect this
     Network Node.
     If a pre-existing installation exists it will simply return with an error
     message
     """
+    os.environ["ROAMING"] = roaming
+
     scheduler_main()
 
 

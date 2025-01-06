@@ -93,7 +93,6 @@ def test_header_by_IPNS_name(IPNS_name):
     ipns_path = "/ipns/" + IPNS_name
     get_arg = {
         "arg": ipns_path,
-        # "output": str(path_dict['log_path']) + '/' + IPNS_name + '.txt',  # NOTE: Path does not work
     }
 
     with requests.post(url_dict["get"], params=get_arg, stream=False) as r:

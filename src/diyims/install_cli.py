@@ -3,6 +3,7 @@ from typing import Optional
 import typer
 from rich import print
 from typing_extensions import Annotated
+import os
 
 from diyims.database_install import create, init
 from diyims.error_classes import (
@@ -32,6 +33,14 @@ def install(
     force_install: Annotated[
         bool, typer.Option(help="Force installation", rich_help_panel="Install Options")
     ] = False,
+    roaming: Annotated[
+        Optional[str],
+        typer.Option(
+            help="Set alternate Roaming value.",
+            show_default=False,
+            rich_help_panel="Install Options",
+        ),
+    ] = "Roaming",
 ):
     """
     The installation process is intended to satisfy the needs of most users. That being said,
@@ -45,6 +54,7 @@ def install(
         no matter the source.
 
     """
+    os.environ["ROAMING"] = roaming
     try:
         install_main(drive_letter, force_install)
 

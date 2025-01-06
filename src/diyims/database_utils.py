@@ -73,10 +73,52 @@ def update_peer_table_peer_type_status(conn, queries, peer_table_dict):
     return
 
 
-def update_peer_table_status(conn, queries, peer_table_dict):
-    queries.update_peer_table_status(
+def update_peer_table_status_WLR(conn, queries, peer_table_dict):
+    queries.update_peer_table_status_WLR(
         conn,
         peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
+def update_peer_table_status_WLP(conn, queries, peer_table_dict):
+    queries.update_peer_table_status_WLP(
+        conn,
+        peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
+def update_peer_table_status_WLX(conn, queries, peer_table_dict):
+    queries.update_peer_table_status_WLX(
+        conn,
+        peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
+def update_peer_table_status_WLZ(conn, queries, peer_table_dict):
+    queries.update_peer_table_status_WLZ(
+        conn,
+        peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
+        peer_table_dict["peer_ID"],
+    )
+    return
+
+
+def update_peer_table_IPNS_name_status_NPC(conn, queries, peer_table_dict):
+    queries.update_peer_table_IPNS_name_status_NPC(
+        conn,
+        peer_table_dict["IPNS_name"],
+        peer_table_dict["processing_status"],
+        peer_table_dict["local_update_DTS"],
         peer_table_dict["peer_ID"],
     )
     return

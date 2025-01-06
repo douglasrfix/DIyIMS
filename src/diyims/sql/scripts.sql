@@ -51,9 +51,29 @@ values (:peer_ID, :IPNS_name, :peer_type, :origin_update_DTS, :local_update_DTS,
 update peer_table set peer_type = :peer_type, processing_status = :processing_status, local_update_DTS = :local_update_DTS
 where peer_ID = :peer_ID
 
--- name: update_peer_table_status!
-update peer_table set processing_status = :processing_status
-where peer_ID = :peer_ID
+-- name: update_peer_table_status_WLR!
+update peer_table set processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID and  processing_status = "WLX"
+
+-- name: update_peer_table_status_WLP!
+update peer_table set processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID and  processing_status = "WLR"
+
+
+-- name: update_peer_table_status_WLX!
+update peer_table set processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID and  processing_status = "WLP"
+
+-- name: update_peer_table_status_WLZ!
+update peer_table set processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID and  processing_status = "WLX"
+
+
+-- name: update_peer_table_IPNS_name_status_NPC!
+update peer_table set IPNS_name = :IPNS_name, processing_status = :processing_status, local_update_DTS = :local_update_DTS
+where peer_ID = :peer_ID and (processing_status = "WLR" or processing_status = "WLP" or
+	processing_status = "WLX" or processing_status = "WLZ")
+
 
 -- name: reset_peer_table_status#
 update peer_table set processing_status = "WLR"

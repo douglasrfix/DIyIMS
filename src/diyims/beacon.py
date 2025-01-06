@@ -125,7 +125,6 @@ def flash_beacon(logger, beacon_config_dict, beacon_CID):
     url_dict = get_url_dict()
     param = {
         "arg": beacon_CID,
-        # "output": str(path_dict['log_path']) + '/' + IPNS_name + '.txt',  # NOTE: Path does not work
     }
 
     file = "none"
