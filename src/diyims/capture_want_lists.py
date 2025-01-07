@@ -120,7 +120,7 @@ def capture_want_lists_for_peers(
     connR, queries = set_up_sql_operations(want_list_config_dict)
     connU, queries = set_up_sql_operations(want_list_config_dict)
     # dual connections avoid locking conflict with the read
-    rows_of_peers = queries.select_peers_by_peer_type_status(connR, peer_type)
+    rows_of_peers = queries.select_peers_by_peer_type_status(connR, peer_type=peer_type)
 
     for peer in rows_of_peers:
         peer_table_dict = refresh_peer_table_dict()

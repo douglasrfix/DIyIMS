@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "diyims"
-version = "0.0.0a35"
+version = "0.0.0a36"
 description = "A diy independent media services app that provides the modern version of the single person printing press."
 authors = ["Douglas R Fix <douglasrfix@prairieobserver.com>"]
 readme = "README.md"
@@ -14,7 +14,7 @@ diyims = "diyims.diyims_cmd:app"
 [tool.poetry.dependencies]
 python = ">=3.9, <3.12"
 requests = ">=2.32.0"
-aiosql = ">=9.0"
+aiosql = ">=13.0"
 typer = ">=0.12.4"
 python-dateutil = "^2.9.0.post0"
 apscheduler = "^3.10.4"

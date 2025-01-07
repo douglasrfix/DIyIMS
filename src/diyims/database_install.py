@@ -201,3 +201,7 @@ def import_car():
             r.raise_for_status()
 
     return imported_CID
+
+
+if __name__ == "__main__":
+    init()

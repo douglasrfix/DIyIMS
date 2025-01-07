@@ -44,11 +44,13 @@ PRAGMA journal_mode = WAL
 -- name: insert_peer_row!
 insert into peer_table (peer_ID, IPNS_name, peer_type, origin_update_DTS, local_update_DTS, execution_platform, python_version,
 		IPFS_agent, processing_status, agent, version)
-values (:peer_ID, :IPNS_name, :peer_type, :origin_update_DTS, :local_update_DTS, :execution_platform, :python_version,
-		:IPFS_agent, :processing_status, :agent, :version);
+values (:peer_ID, :IPNS_name, :peer_type, :origin_update_DTS, :local_update_DTS,
+		:execution_platform, :python_version, :IPFS_agent, :processing_status,
+		:agent, :version);
 
 -- name: update_peer_table_peer_type_status!
-update peer_table set peer_type = :peer_type, processing_status = :processing_status, local_update_DTS = :local_update_DTS
+update peer_table set peer_type = :peer_type, processing_status = :processing_status,
+local_update_DTS = :local_update_DTS
 where peer_ID = :peer_ID
 
 -- name: update_peer_table_status_WLR!
@@ -120,8 +122,7 @@ where peer_ID = :peer_ID
 -- name: insert_header_row!
 insert into header_table (version, object_CID, object_type, insert_DTS,
 	 prior_header_CID, header_CID)
-values (:version, :object_CID, :object_type, :insert_DTS,
-	 :prior_header_CID, :header_CID);
+values (:version, :object_CID, :object_type, :insert_DTS, :prior_header_CID, :header_CID);
 
 -- name: insert_want_list_row!
 insert into want_list_table (peer_ID, object_CID, insert_DTS, last_update_DTS, insert_update_delta, source_peer_type)

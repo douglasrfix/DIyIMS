@@ -39,17 +39,17 @@ def reset_peer_table_status():
 def insert_peer_row(conn, queries, peer_table_dict):
     queries.insert_peer_row(
         conn,
-        peer_table_dict["peer_ID"],
-        peer_table_dict["IPNS_name"],
-        peer_table_dict["peer_type"],
-        peer_table_dict["origin_update_DTS"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["execution_platform"],
-        peer_table_dict["python_version"],
-        peer_table_dict["IPFS_agent"],
-        peer_table_dict["processing_status"],
-        peer_table_dict["agent"],
-        peer_table_dict["version"],
+        peer_ID=peer_table_dict["peer_ID"],
+        IPNS_name=peer_table_dict["IPNS_name"],
+        peer_type=peer_table_dict["peer_type"],
+        origin_update_DTS=peer_table_dict["origin_update_DTS"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        execution_platform=peer_table_dict["execution_platform"],
+        python_version=peer_table_dict["python_version"],
+        IPFS_agent=peer_table_dict["IPFS_agent"],
+        processing_status=peer_table_dict["processing_status"],
+        agent=peer_table_dict["agent"],
+        version=peer_table_dict["version"],
     )
     return
 
@@ -57,7 +57,7 @@ def insert_peer_row(conn, queries, peer_table_dict):
 def select_peer_table_entry_by_key(conn, queries, peer_table_dict):
     peer_table_entry = queries.select_peer_table_entry_by_key(
         conn,
-        peer_table_dict["peer_ID"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return peer_table_entry
 
@@ -65,10 +65,10 @@ def select_peer_table_entry_by_key(conn, queries, peer_table_dict):
 def update_peer_table_peer_type_status(conn, queries, peer_table_dict):
     queries.update_peer_table_peer_type_status(
         conn,
-        peer_table_dict["peer_type"],
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        peer_type=peer_table_dict["peer_type"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -76,9 +76,9 @@ def update_peer_table_peer_type_status(conn, queries, peer_table_dict):
 def update_peer_table_status_WLR(conn, queries, peer_table_dict):
     queries.update_peer_table_status_WLR(
         conn,
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -86,9 +86,9 @@ def update_peer_table_status_WLR(conn, queries, peer_table_dict):
 def update_peer_table_status_WLP(conn, queries, peer_table_dict):
     queries.update_peer_table_status_WLP(
         conn,
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -96,9 +96,9 @@ def update_peer_table_status_WLP(conn, queries, peer_table_dict):
 def update_peer_table_status_WLX(conn, queries, peer_table_dict):
     queries.update_peer_table_status_WLX(
         conn,
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -106,9 +106,9 @@ def update_peer_table_status_WLX(conn, queries, peer_table_dict):
 def update_peer_table_status_WLZ(conn, queries, peer_table_dict):
     queries.update_peer_table_status_WLZ(
         conn,
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -116,10 +116,10 @@ def update_peer_table_status_WLZ(conn, queries, peer_table_dict):
 def update_peer_table_IPNS_name_status_NPC(conn, queries, peer_table_dict):
     queries.update_peer_table_IPNS_name_status_NPC(
         conn,
-        peer_table_dict["IPNS_name"],
-        peer_table_dict["processing_status"],
-        peer_table_dict["local_update_DTS"],
-        peer_table_dict["peer_ID"],
+        IPNS_name=peer_table_dict["IPNS_name"],
+        processing_status=peer_table_dict["processing_status"],
+        local_update_DTS=peer_table_dict["local_update_DTS"],
+        peer_ID=peer_table_dict["peer_ID"],
     )
     return
 
@@ -149,7 +149,7 @@ def refresh_peer_table_dict():
 def insert_network_row(conn, queries, network_table_dict):
     queries.insert_network_row(
         conn,
-        network_table_dict["network_name"],
+        network_name=network_table_dict["network_name"],
     )
     return
 
@@ -174,12 +174,12 @@ def insert_want_list_row(conn, queries, want_list_table_dict):
 
     queries.insert_want_list_row(
         conn,
-        want_list_table_dict["peer_ID"],
-        want_list_table_dict["object_CID"],
-        want_list_table_dict["insert_DTS"],
-        want_list_table_dict["last_update_DTS"],
-        want_list_table_dict["insert_update_delta"],
-        want_list_table_dict["source_peer_type"],
+        peer_ID=want_list_table_dict["peer_ID"],
+        object_CID=want_list_table_dict["object_CID"],
+        insert_DTS=want_list_table_dict["insert_DTS"],
+        last_update_DTS=want_list_table_dict["last_update_DTS"],
+        insert_update_delta=want_list_table_dict["insert_update_delta"],
+        source_peer_type=want_list_table_dict["source_peer_type"],
     )
     return
 
@@ -190,10 +190,10 @@ def update_last_update_DTS(conn, queries, want_list_table_dict):
 
     queries.update_last_update_DTS(
         conn,
-        want_list_table_dict["last_update_DTS"],
-        want_list_table_dict["insert_update_delta"],
-        want_list_table_dict["peer_ID"],
-        want_list_table_dict["object_CID"],
+        last_update_DTS=want_list_table_dict["last_update_DTS"],
+        insert_update_delta=want_list_table_dict["insert_update_delta"],
+        peer_ID=want_list_table_dict["peer_ID"],
+        object_CID=want_list_table_dict["object_CID"],
     )
     return
 
@@ -204,8 +204,8 @@ def select_want_list_entry_by_key(conn, queries, want_list_table_dict):
 
     want_list_entry = queries.select_want_list_entry_by_key(
         conn,
-        want_list_table_dict["peer_ID"],
-        want_list_table_dict["object_CID"],
+        peer_ID=want_list_table_dict["peer_ID"],
+        object_CID=want_list_table_dict["object_CID"],
     )
     return want_list_entry
 

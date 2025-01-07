@@ -73,12 +73,12 @@ def ipfs_header_create(DTS, object_CID, object_type):
 
     queries.insert_header_row(
         conn,
-        header_dict["version"],
-        header_dict["object_CID"],
-        header_dict["object_type"],
-        header_dict["insert_DTS"],
-        header_dict["prior_header_CID"],
-        header_CID,
+        version=header_dict["version"],
+        object_CID=header_dict["object_CID"],
+        object_type=header_dict["object_type"],
+        insert_DTS=header_dict["insert_DTS"],
+        prior_header_CID=header_dict["prior_header_CID"],
+        header_CID=header_CID,
     )
     conn.commit()
 
