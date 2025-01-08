@@ -17,6 +17,7 @@ removed i.e. unpinned and a garbage collection has run.
 """
 
 import json
+import psutil
 from diyims.requests_utils import execute_request
 from datetime import datetime, timezone
 from sqlite3 import IntegrityError
@@ -34,8 +35,16 @@ from diyims.general_utils import get_network_name, get_shutdown_target
 from diyims.logger_utils import get_logger
 from diyims.config_utils import get_capture_peer_config_dict
 
+#  psutil.BELOW_NORMAL_PRIORITY_CLASS,
+#  psutil.NORMAL_PRIORITY_CLASS,
+#  psutil.ABOVE_NORMAL_PRIORITY_CLASS,
+#  psutil.HIGH_PRIORITY_CLASS,
+#  psutil.REALTIME_PRIORITY_CLASS
+
 
 def capture_peer_main(peer_type):
+    p = psutil.Process()
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     capture_peer_config_dict = get_capture_peer_config_dict()
     logger = get_logger(capture_peer_config_dict["log_file"], peer_type)
     wait_seconds = int(capture_peer_config_dict["wait_before_startup"])
@@ -120,19 +129,17 @@ def capture_peers(
     peer_type,
     network_name,
 ):
-    param = {"arg": network_name}
+    # param = {"arg": network_name}
 
     if peer_type == "PP":
-        url_key = "find_providers"
-        file = "none"
-        config_dict = capture_peer_config_dict
+        # url_key = "find_providers"
+
         response = execute_request(
-            logger,
-            url_dict,
-            url_key,
-            config_dict,
-            param,
-            file,
+            url_key="find_providers",
+            logger=logger,
+            url_dict=url_dict,
+            config_dict=capture_peer_config_dict,
+            param={"arg": network_name},
         )
 
         found, added, promoted = decode_findprovs_structure(
@@ -146,16 +153,13 @@ def capture_peers(
         )
 
     elif peer_type == "BP":
-        url_key = "bitswap_stat"
-        config_dict = capture_peer_config_dict
-        file = "none"
+        # url_key = "bitswap_stat"
         response = execute_request(
-            logger,
-            url_dict,
-            url_key,
-            config_dict,
-            param,
-            file,
+            url_key="bitswap_stat",
+            logger=logger,
+            url_dict=url_dict,
+            config_dict=capture_peer_config_dict,
+            param={"arg": network_name},
         )
 
         found, added, promoted = decode_bitswap_stat_structure(
@@ -167,16 +171,13 @@ def capture_peers(
         )
 
     elif peer_type == "SP":
-        url_key = "swarm_peers"
-        config_dict = capture_peer_config_dict
-        file = "none"
+        # url_key = "swarm_peers"
         response = execute_request(
-            logger,
-            url_dict,
-            url_key,
-            config_dict,
-            param,
-            file,
+            url_key="swarm_peers",
+            logger=logger,
+            url_dict=url_dict,
+            config_dict=capture_peer_config_dict,
+            param={"arg": network_name},
         )
 
         found, added, promoted = decode_swarm_structure(
@@ -264,32 +265,27 @@ def decode_findprovs_structure(
                             conn.commit()
                             connect_flag = True
 
-                        elif original_peer_type == "LP":
+                        elif (
+                            original_peer_type == "LP"
+                        ):  # NOTE: need db file to track change inn condition and
+                            # execute refresh
                             logger.debug("Local peer was identified as a provider")
 
                     if connect_flag is True:
                         param = {"arg": peer_address + "/p2p/" + responses_dict["ID"]}
-                        url_key = "connect"
-                        config_dict = capture_peer_config_dict
-                        file = "none"
                         execute_request(
-                            logger,
-                            url_dict,
-                            url_key,
-                            config_dict,
-                            param,
-                            file,
+                            url_key="connect",
+                            logger=logger,
+                            url_dict=url_dict,
+                            config_dict=capture_peer_config_dict,
+                            param=param,
                         )
-
-                        url_key = "peering_add"
-                        file = "none"
                         execute_request(
-                            logger,
-                            url_dict,
-                            url_key,
-                            config_dict,
-                            param,
-                            file,
+                            url_key="peering_add",
+                            logger=logger,
+                            url_dict=url_dict,
+                            config_dict=capture_peer_config_dict,
+                            param=param,
                         )
 
     if original_peer_type == "PP":  # wake up every interval for providers

@@ -8,15 +8,10 @@ from diyims.config_utils import get_want_list_config_dict
 
 # from diyims.path_utils import get_path_dict
 from diyims.ipfs_utils import get_url_dict
-from diyims.general_utils import get_DTS
 from diyims.database_utils import (
     set_up_sql_operations,
 )
 from diyims.requests_utils import execute_request
-from diyims.database_utils import (
-    refresh_peer_table_dict,
-    update_peer_table_IPNS_name_status_NPC,
-)
 
 
 def filter_wantlist():
@@ -26,8 +21,8 @@ def filter_wantlist():
     conn, queries = set_up_sql_operations(want_list_config_dict)
 
     current_DT = datetime.now(timezone.utc)
-    off_set = timedelta(hours=1)
-    duration = timedelta(hours=1)
+    off_set = timedelta(hours=48)
+    duration = timedelta(hours=48)
     start_dts = current_DT - off_set
     end_dts = start_dts + duration
     query_start_dts = datetime.isoformat(start_dts)
@@ -35,15 +30,15 @@ def filter_wantlist():
 
     print(query_start_dts)
     print(query_stop_dts)
-    rows_of_wantlist_items = (
-        queries.select_filter_want_list_by_start_stop(  # NOTE: need a five count
-            conn,
-            query_start_dts,
-            query_stop_dts,
-        )
+    # NOTE: need a five count or do we
+    rows_of_wantlist_items = queries.select_filter_want_list_by_start_stop(
+        conn,
+        query_start_dts=query_start_dts,
+        query_stop_dts=query_stop_dts,
     )
+
     for want_list_item in rows_of_wantlist_items:
-        # print(want_list_item["object_CID"])
+        print(want_list_item["object_CID"])
         # IPNS_name = want_list_item["object_CID"]
         # back_slash = "\\"
         # dot_txt = ".txt"
@@ -55,45 +50,53 @@ def filter_wantlist():
             "arg": want_list_item["object_CID"],
         }
         url_key = "get"
-        config_dict = want_list_config_dict
-        file = "none"
+        # config_dict = want_list_config_dict
+        # file = "none"
         response = execute_request(
-            "none",
-            url_dict,
             url_key,
-            config_dict,
-            param,
-            file,
+            url_dict=url_dict,
+            config_dict=want_list_config_dict,
+            param=param,
         )
-        # NOTE: check package len in header to avoid obviously not what i.m looking for
-        start = response.text.find("{")
-        end = response.text.find("}", start)
-        end += 1
-        string = response.text[start:end]
-        print(string)
-        json_dict = json.loads(string)
 
-        try:
+        print(response.headers["X-Content-Length"])
+        X_Content_Length = int(response.headers["X-Content-Length"])
+
+        if X_Content_Length >= 150 and X_Content_Length <= 170:
+            # NOTE: error checking to verify its a valid dictionary
+            start = response.text.find("{")
+            end = response.text.find("}", start)
+            end += 1
+            string = response.text[start:end]
+
+            json_dict = json.loads(string)
             print(json_dict["IPNS_name"])
 
-            DTS = get_DTS()
-            peer_table_dict = refresh_peer_table_dict()
-            Uconn, queries = set_up_sql_operations(want_list_config_dict)
-            peer_table_dict["IPNS_name"] = json_dict["IPNS_name"]
-            peer_table_dict["processing_status"] = "NPC"
-            peer_table_dict["local_update_DTS"] = DTS
-            peer_table_dict["peer_ID"] = want_list_item["peer_ID"]
+            """
+            try:
+                print(json_dict["IPNS_name"])
 
-            update_peer_table_IPNS_name_status_NPC(Uconn, queries, peer_table_dict)
-            Uconn.commit()
-            Uconn.close
+                DTS = get_DTS()
+                peer_table_dict = refresh_peer_table_dict()
 
-        except KeyError:
-            pass
+                Uconn, queries = set_up_sql_operations(want_list_config_dict)
+                peer_table_dict["IPNS_name"] = json_dict["IPNS_name"]
+                peer_table_dict["processing_status"] = "NPC"
+                peer_table_dict["local_update_DTS"] = DTS
+                peer_table_dict["peer_ID"] = want_list_item["peer_ID"]
 
-        break
+                update_peer_table_IPNS_name_status_NPC(Uconn, queries, peer_table_dict)
+                Uconn.commit()
+                Uconn.close
+
+            except KeyError:
+                pass
+
+            """
+            break
 
     # conn.close()
+    return
 
 
 if __name__ == "__main__":

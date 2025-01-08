@@ -1,4 +1,5 @@
 import json
+import psutil
 from datetime import datetime
 from time import sleep
 from sqlite3 import IntegrityError
@@ -30,7 +31,8 @@ def capture_peer_want_lists(peer_type):  # each peer type runs in its own proces
         set_start_method("spawn")
     except RuntimeError:
         pass
-
+    p = psutil.Process()
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     want_list_config_dict = get_want_list_config_dict()
     logger = get_logger(
         want_list_config_dict["log_file"],
@@ -154,6 +156,8 @@ def submitted_capture_peer_want_list_by_id(
     want_list_config_dict,
     peer_table_dict,
 ):
+    p = psutil.Process()
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     peer_type = peer_table_dict["peer_type"]
     peer_ID = peer_table_dict["peer_ID"]
     logger = get_logger_task(peer_type, peer_ID)
@@ -261,21 +265,18 @@ def capture_peer_want_list_by_id(
     peer_table_dict,
 ):  # This is one sample for a peer
     url_dict = get_url_dict()
-    param = {"peer": peer_table_dict["peer_ID"]}
+
     found = 0
     added = 0
     updated = 0
 
-    url_key = "want_list"
-    config_dict = want_list_config_dict
-    file = "none"
+    param = {"peer": peer_table_dict["peer_ID"]}
     response = execute_request(
-        logger,
-        url_dict,
-        url_key,
-        config_dict,
-        param,
-        file,
+        url_key="want_list",
+        logger=logger,
+        url_dict=url_dict,
+        config_dict=want_list_config_dict,
+        param=param,
     )
 
     level_zero_dict = json.loads(response.text)

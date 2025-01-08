@@ -5,6 +5,7 @@ The stats captured will also be used to create timing information (3)
     will be used to load test the system as well as test for beacon distortion.
 """
 
+import psutil
 import json
 from diyims.requests_utils import execute_request
 from datetime import datetime, timedelta, date
@@ -21,6 +22,8 @@ from diyims.database_utils import set_up_sql_operations
 
 
 def beacon_main():
+    p = psutil.Process()
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
     beacon_config_dict = get_beacon_config_dict()
     logger = get_logger(
         beacon_config_dict["log_file"],
@@ -99,17 +102,15 @@ def create_beacon_CID(logger, beacon_config_dict):
         json.dump(want_item_dict, write_file, indent=4)
 
     file = {"file": open(want_item_file, "rb")}
-    param = {"only-hash": "true", "pin": "false"}
-    url_key = "add"
-    config_dict = beacon_config_dict
+    param = {"only-hash": "true", "pin": "false", "cid-version": 1}
 
     response = execute_request(
-        logger,
-        url_dict,
-        url_key,
-        config_dict,
-        param,
-        file,
+        url_key="add",
+        logger=logger,
+        url_dict=url_dict,
+        config_dict=beacon_config_dict,
+        param=param,
+        file=file,
     )
 
     json_dict = json.loads(response.text)
@@ -123,21 +124,15 @@ def create_beacon_CID(logger, beacon_config_dict):
 
 def flash_beacon(logger, beacon_config_dict, beacon_CID):
     url_dict = get_url_dict()
-    param = {
-        "arg": beacon_CID,
-    }
-
-    file = "none"
-    url_key = "get"
-    config_dict = beacon_config_dict
 
     execute_request(
-        logger,
-        url_dict,
-        url_key,
-        config_dict,
-        param,
-        file,
+        url_key="get",
+        logger=logger,
+        url_dict=url_dict,
+        config_dict=beacon_config_dict,
+        param={
+            "arg": beacon_CID,
+        },
     )
     logger.debug("Flash off")
 
@@ -145,6 +140,8 @@ def flash_beacon(logger, beacon_config_dict, beacon_CID):
 
 
 def satisfy_main():
+    p = psutil.Process()
+    p.nice(psutil.ABOVE_NORMAL_PRIORITY_CLASS)
     satisfy_config_dict = get_satisfy_config_dict()
     logger = get_logger(
         satisfy_config_dict["log_file"],
@@ -180,16 +177,14 @@ def satisfy_main():
 def satisfy_beacon(logger, satisfy_config_dict, want_item_file):
     url_dict = get_url_dict()
     file = {"file": open(want_item_file, "rb")}
-    param = {"only-hash": "false", "pin": "false"}
-    url_key = "add"
-    config_dict = satisfy_config_dict
+    param = {"only-hash": "false", "pin": "false", "cid-version": 1}
     execute_request(
-        logger,
-        url_dict,
-        url_key,
-        config_dict,
-        param,
-        file,
+        url_key="add",
+        logger=logger,
+        url_dict=url_dict,
+        config_dict=satisfy_config_dict,
+        param=param,
+        file=file,
     )
     logger.debug(f"Satisfy {want_item_file}")
 

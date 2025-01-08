@@ -9,7 +9,7 @@ from diyims.path_utils import get_path_dict
 from diyims.py_version_dep import get_sql_str
 
 
-def ipfs_header_create(DTS, object_CID, object_type):
+def ipfs_header_create(DTS, object_CID, object_type):  # NOTE: Change name to pointer
     path_dict = get_path_dict()
     url_dict = get_url_dict()
 

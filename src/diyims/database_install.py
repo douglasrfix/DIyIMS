@@ -59,6 +59,7 @@ def create():
 
 
 def init():  # NOTE: add wait on ipfs
+    # NOTE: change header to pointer
     try:
         path_dict = get_path_dict()
 
