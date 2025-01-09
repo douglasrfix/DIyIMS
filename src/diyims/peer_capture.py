@@ -44,7 +44,7 @@ from diyims.config_utils import get_capture_peer_config_dict
 
 def capture_peer_main(peer_type):
     p = psutil.Process()
-    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)  # NOTE: put in config
     capture_peer_config_dict = get_capture_peer_config_dict()
     logger = get_logger(capture_peer_config_dict["log_file"], peer_type)
     wait_seconds = int(capture_peer_config_dict["wait_before_startup"])

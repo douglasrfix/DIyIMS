@@ -23,7 +23,7 @@ from diyims.database_utils import set_up_sql_operations
 
 def beacon_main():
     p = psutil.Process()
-    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)  # NOTE: put in config
     beacon_config_dict = get_beacon_config_dict()
     logger = get_logger(
         beacon_config_dict["log_file"],

@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from dateutil.parser import parse
 
 import aiosql
@@ -30,6 +30,8 @@ def get_DTS():
 def get_shutdown_target(config_dict):
     current_date = datetime.today()
     shutdown_time = config_dict["shutdown_time"]
+    if shutdown_time == "99:99:99":
+        shutdown_time = str(current_date + timedelta(weeks=10))
     target_DT = parse(shutdown_time, default=current_date)
 
     return target_DT

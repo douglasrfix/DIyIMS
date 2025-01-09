@@ -32,7 +32,7 @@ def capture_peer_want_lists(peer_type):  # each peer type runs in its own proces
     except RuntimeError:
         pass
     p = psutil.Process()
-    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)  # NOTE: put in config
     want_list_config_dict = get_want_list_config_dict()
     logger = get_logger(
         want_list_config_dict["log_file"],
@@ -157,7 +157,7 @@ def submitted_capture_peer_want_list_by_id(
     peer_table_dict,
 ):
     p = psutil.Process()
-    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)
+    p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)  # NOTE: put in config
     peer_type = peer_table_dict["peer_type"]
     peer_ID = peer_table_dict["peer_ID"]
     logger = get_logger_task(peer_type, peer_ID)

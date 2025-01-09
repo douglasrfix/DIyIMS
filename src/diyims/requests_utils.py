@@ -3,7 +3,7 @@ import requests
 from requests.exceptions import ConnectionError, HTTPError
 
 
-def execute_request(url_key, **kwargs):
+def execute_request(url_key, **kwargs):  # NOTE: add timeout
     try:
         url_dict = kwargs["url_dict"]
     except KeyError:

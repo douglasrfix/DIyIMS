@@ -8,6 +8,7 @@ from diyims.error_classes import ApplicationNotInstalledError
 from diyims.path_utils import (
     get_install_template_dict,
 )
+# NOTE: update defaults and provide a set to system defaults function
 
 
 def config_install():

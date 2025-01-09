@@ -9,7 +9,7 @@ from diyims.config_utils import get_queue_config_dict
 
 def queue_main():
     p = psutil.Process()
-    p.nice(psutil.HIGH_PRIORITY_CLASS)
+    p.nice(psutil.HIGH_PRIORITY_CLASS)  # NOTE: put in config
     queue_config_dict = get_queue_config_dict()
     logger = get_logger(queue_config_dict["log_file"], "none")
     wait_seconds = int(queue_config_dict["wait_before_startup"])
