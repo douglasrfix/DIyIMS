@@ -10,8 +10,11 @@ from diyims.config_utils import get_want_list_config_dict
 from diyims.ipfs_utils import get_url_dict
 from diyims.database_utils import (
     set_up_sql_operations,
+    refresh_peer_table_dict,
+    update_peer_table_IPNS_name_status_NPC,
 )
 from diyims.requests_utils import execute_request
+from diyims.general_utils import get_DTS
 
 
 def filter_wantlist():
@@ -21,8 +24,8 @@ def filter_wantlist():
     conn, queries = set_up_sql_operations(want_list_config_dict)
 
     current_DT = datetime.now(timezone.utc)
-    off_set = timedelta(hours=48)
-    duration = timedelta(hours=48)
+    off_set = timedelta(hours=1)
+    duration = timedelta(hours=1)
     start_dts = current_DT - off_set
     end_dts = start_dts + duration
     query_start_dts = datetime.isoformat(start_dts)
@@ -30,7 +33,6 @@ def filter_wantlist():
 
     print(query_start_dts)
     print(query_stop_dts)
-    # NOTE: need a five count or do we
     rows_of_wantlist_items = queries.select_filter_want_list_by_start_stop(
         conn,
         query_start_dts=query_start_dts,
@@ -59,28 +61,31 @@ def filter_wantlist():
             param=param,
         )
 
-        print(response.headers["X-Content-Length"])
+        # print(response.headers["X-Content-Length"])
         X_Content_Length = int(response.headers["X-Content-Length"])
 
         if X_Content_Length >= 150 and X_Content_Length <= 170:
-            # NOTE: error checking to verify its a valid dictionary
             start = response.text.find("{")
-            end = response.text.find("}", start)
-            end += 1
-            string = response.text[start:end]
+            if start > 0:
+                end = response.text.find("}", start)
+                if end > 0:
+                    end += 1
+                    string = response.text[start:end]
+                    try:
+                        json_dict = json.loads(string)
+                    except json.JSONDecodeError:
+                        try:
+                            IPNS_name = json_dict["IPNS_name"]
+                        except KeyError:
+                            break
 
-            json_dict = json.loads(string)
-            print(json_dict["IPNS_name"])
-
-            """
-            try:
                 print(json_dict["IPNS_name"])
 
                 DTS = get_DTS()
                 peer_table_dict = refresh_peer_table_dict()
 
                 Uconn, queries = set_up_sql_operations(want_list_config_dict)
-                peer_table_dict["IPNS_name"] = json_dict["IPNS_name"]
+                peer_table_dict["IPNS_name"] = IPNS_name
                 peer_table_dict["processing_status"] = "NPC"
                 peer_table_dict["local_update_DTS"] = DTS
                 peer_table_dict["peer_ID"] = want_list_item["peer_ID"]
@@ -88,11 +93,8 @@ def filter_wantlist():
                 update_peer_table_IPNS_name_status_NPC(Uconn, queries, peer_table_dict)
                 Uconn.commit()
                 Uconn.close
+                print("Success")
 
-            except KeyError:
-                pass
-
-            """
             break
 
     # conn.close()

@@ -81,7 +81,7 @@ where peer_ID = :peer_ID and (processing_status = "WLR" or processing_status = "
 update peer_table set processing_status = "WLR"
 where processing_status  = "WLX" or processing_status = "WLP"
 
--- name: select_peers_by_peer_type_status
+-- name: select_peers_by_peer_type_status^
 SELECT
 	peer_ID,
 	IPNS_name,
@@ -99,6 +99,9 @@ FROM
    peer_table
 
 where peer_type = :peer_type and (processing_status = "WLR")
+ORDER BY
+
+	local_update_DTS ASC
 
 -- name: select_peer_table_entry_by_key^
 SELECT

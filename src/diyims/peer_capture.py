@@ -230,12 +230,13 @@ def decode_findprovs_structure(
                 if address_available is True:
                     peer_table_dict = refresh_peer_table_dict()
                     DTS = str(datetime.now(timezone.utc))
-                    peer_table_dict["processing_status"] = "WLR"
+
                     peer_table_dict["peer_ID"] = responses_dict["ID"]
                     peer_table_dict["local_update_DTS"] = DTS
                     peer_table_dict["peer_type"] = "PP"
 
                     try:
+                        peer_table_dict["processing_status"] = "WLR"
                         insert_peer_row(conn, queries, peer_table_dict)
                         conn.commit()
                         added += 1
@@ -250,6 +251,13 @@ def decode_findprovs_structure(
                         original_peer_type = peer_table_entry["peer_type"]
 
                         if original_peer_type == "BP":
+                            if peer_table_entry["processing_status"] == "WLZ":
+                                peer_table_dict["processing_status"] = "WLR"
+                            else:
+                                peer_table_dict["processing_status"] = peer_table_entry[
+                                    "processing_status"
+                                ]
+
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )
@@ -258,6 +266,13 @@ def decode_findprovs_structure(
                             connect_flag = True
 
                         elif original_peer_type == "SP":
+                            if peer_table_entry["processing_status"] == "WLZ":
+                                peer_table_dict["processing_status"] = "WLR"
+                            else:
+                                peer_table_dict["processing_status"] = peer_table_entry[
+                                    "processing_status"
+                                ]
+
                             update_peer_table_peer_type_status(
                                 conn, queries, peer_table_dict
                             )

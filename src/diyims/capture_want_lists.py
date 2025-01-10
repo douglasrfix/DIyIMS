@@ -122,29 +122,38 @@ def capture_want_lists_for_peers(
     connR, queries = set_up_sql_operations(want_list_config_dict)
     connU, queries = set_up_sql_operations(want_list_config_dict)
     # dual connections avoid locking conflict with the read
-    rows_of_peers = queries.select_peers_by_peer_type_status(connR, peer_type=peer_type)
 
-    for peer in rows_of_peers:
-        peer_table_dict = refresh_peer_table_dict()
-        peer_table_dict["peer_ID"] = peer["peer_ID"]
-        peer_table_dict["peer_type"] = peer["peer_type"]
-        peer_table_dict["processing_status"] = (
-            "WLP"  # suppress resubmission by WLR -> WLP
+    found = True
+    while found:
+        row_for_peer = queries.select_peers_by_peer_type_status(
+            connR, peer_type=peer_type
         )
-        peer_table_dict["local_update_DTS"] = DTS
+        while row_for_peer:
+            peer_table_dict = refresh_peer_table_dict()
+            peer_table_dict["peer_ID"] = row_for_peer["peer_ID"]
+            peer_table_dict["peer_type"] = row_for_peer["peer_type"]
+            peer_table_dict["processing_status"] = (
+                "WLP"  # suppress resubmission by WLR -> WLP
+            )
+            peer_table_dict["local_update_DTS"] = DTS
 
-        update_peer_table_status_WLP(connU, queries, peer_table_dict)
-        connU.commit()
-        pool.apply_async(
-            submitted_capture_peer_want_list_by_id,
-            args=(
-                want_list_config_dict,
-                peer_table_dict,
-            ),
-        )
+            update_peer_table_status_WLP(connU, queries, peer_table_dict)
+            connU.commit()
+            pool.apply_async(
+                submitted_capture_peer_want_list_by_id,
+                args=(
+                    want_list_config_dict,
+                    peer_table_dict,
+                ),
+            )
 
-        logger.debug(f"peer {peers_processed} id {peer_table_dict['peer_ID']}.")
-        peers_processed += 1
+            logger.debug(f"peer {peers_processed} id {peer_table_dict['peer_ID']}.")
+            peers_processed += 1
+            row_for_peer = queries.select_peers_by_peer_type_status(
+                connR, peer_type=peer_type
+            )
+
+        found = False
 
     connR.close()
     connU.close()
