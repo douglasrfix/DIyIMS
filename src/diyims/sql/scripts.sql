@@ -38,9 +38,22 @@ CREATE TABLE "network_table" (
 	"network_name"	TEXT
 );
 
+CREATE TABLE "log" (
+	"DTS"	TEXT,
+	"process"	TEXT,
+	"pid"	INTEGER,
+	"peer_type"	TEXT,
+	"msg"	TEXT
+);
+
 -- name: set_pragma#
 PRAGMA journal_mode = WAL
 ;
+
+-- name: insert_log_row!
+insert into log (DTS, process, pid, peer_type, msg)
+values (:DTS, :process, :pid, :peer_type, :msg);
+
 -- name: insert_peer_row!
 insert into peer_table (peer_ID, IPNS_name, peer_type, origin_update_DTS, local_update_DTS, execution_platform, python_version,
 		IPFS_agent, processing_status, agent, version)

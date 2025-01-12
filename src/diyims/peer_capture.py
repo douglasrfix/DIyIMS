@@ -30,6 +30,8 @@ from diyims.database_utils import (
     select_peer_table_entry_by_key,
     update_peer_table_peer_type_status,
     set_up_sql_operations,
+    refresh_log_dict,
+    insert_log_row,
 )
 from diyims.general_utils import get_network_name, get_shutdown_target
 from diyims.logger_utils import get_logger
@@ -45,6 +47,7 @@ from diyims.config_utils import get_capture_peer_config_dict
 def capture_peer_main(peer_type):
     p = psutil.Process()
     p.nice(psutil.BELOW_NORMAL_PRIORITY_CLASS)  # NOTE: put in config
+    pid = p.pid
     capture_peer_config_dict = get_capture_peer_config_dict()
     logger = get_logger(capture_peer_config_dict["log_file"], peer_type)
     wait_seconds = int(capture_peer_config_dict["wait_before_startup"])
@@ -90,7 +93,16 @@ def capture_peer_main(peer_type):
         conn, queries = set_up_sql_operations(capture_peer_config_dict)
 
         capture_interval += 1
-        logger.debug(f"Start of Interval {capture_interval}")
+        # logger.debug(f"Start of Interval {capture_interval}")
+        msg = f"Start of Interval {capture_interval}"
+        log_dict = refresh_log_dict()
+        log_dict["DTS"] = str(datetime.now(timezone.utc))
+        log_dict["process"] = "peer_capture_main=1"
+        log_dict["pid"] = pid
+        log_dict["peer_type"] = peer_type
+        log_dict["msg"] = msg
+        insert_log_row(conn, queries, log_dict)
+        conn.commit()
 
         found, added, promoted = capture_peers(
             logger,
@@ -107,8 +119,18 @@ def capture_peer_main(peer_type):
         total_added += added
         total_promoted += promoted
 
+        msg = f"Interval {capture_interval} complete."
+        log_dict = refresh_log_dict()
+        log_dict["DTS"] = str(datetime.now(timezone.utc))
+        log_dict["process"] = "peer_capture_main-2"
+        log_dict["pid"] = pid
+        log_dict["peer_type"] = peer_type
+        log_dict["msg"] = msg
+        insert_log_row(conn, queries, log_dict)
+        conn.commit()
+
         conn.close()
-        logger.debug(f"Interval {capture_interval} complete.")
+        # logger.debug(f"Interval {capture_interval} complete.")
         sleep(int(capture_peer_config_dict["capture_interval_delay"]))
         current_DT = datetime.now()
 
@@ -163,7 +185,7 @@ def capture_peers(
         )
 
         found, added, promoted = decode_bitswap_stat_structure(
-            logger,
+            # logger,
             conn,
             queries,
             response,
@@ -181,7 +203,7 @@ def capture_peers(
         )
 
         found, added, promoted = decode_swarm_structure(
-            logger,
+            # logger,
             conn,
             queries,
             response,
@@ -203,6 +225,8 @@ def decode_findprovs_structure(
     found = 0
     added = 0
     promoted = 0
+    p = psutil.Process()
+    pid = p.pid
 
     for line in response.iter_lines():
         if line:
@@ -222,15 +246,22 @@ def decode_findprovs_structure(
                     address_available = True
 
                 except IndexError:
-                    logger.debug("No Address 1")
+                    log_dict = refresh_log_dict()
+                    log_dict["DTS"] = str(datetime.now(timezone.utc))
+                    log_dict["process"] = "peer_capture_decode_provider-1"
+                    log_dict["pid"] = pid
+                    log_dict["peer_type"] = "PP"
+                    log_dict["msg"] = "No Address 1"
+                    insert_log_row(conn, queries, log_dict)
+                    conn.commit()
+                    # logger.debug("No Address 1")
                     address_available = False
 
                 found += 1
 
-                if address_available is True:
+                if address_available:
                     peer_table_dict = refresh_peer_table_dict()
                     DTS = str(datetime.now(timezone.utc))
-
                     peer_table_dict["peer_ID"] = responses_dict["ID"]
                     peer_table_dict["local_update_DTS"] = DTS
                     peer_table_dict["peer_type"] = "PP"
@@ -284,7 +315,16 @@ def decode_findprovs_structure(
                             original_peer_type == "LP"
                         ):  # NOTE: need db file to track change inn condition and
                             # execute refresh
-                            logger.debug("Local peer was identified as a provider")
+                            msg = "Local peer was identified as a provider"
+                            # logger.debug(msg)
+                            log_dict = refresh_log_dict()
+                            log_dict["DTS"] = str(datetime.now(timezone.utc))
+                            log_dict["process"] = "peer_capture_decode_provider-2"
+                            log_dict["pid"] = pid
+                            log_dict["peer_type"] = "PP"
+                            log_dict["msg"] = msg
+                            insert_log_row(conn, queries, log_dict)
+                            conn.commit()
 
                     if connect_flag is True:
                         param = {"arg": peer_address + "/p2p/" + responses_dict["ID"]}
@@ -303,25 +343,67 @@ def decode_findprovs_structure(
                             param=param,
                         )
 
-    if original_peer_type == "PP":  # wake up every interval for providers
-        peer_queue.put_nowait("wake up")
-        logger.debug("put wake up")
+                    if (
+                        original_peer_type == "PP"
+                    ):  # wake up every interval for providers
+                        peer_queue.put_nowait("put wake up from PP peer capture")
+                        msg = "put wake up from PP peer capture"
+                        # logger.debug(msg)
+                        log_dict = refresh_log_dict()
+                        log_dict["DTS"] = str(datetime.now(timezone.utc))
+                        log_dict["process"] = "peer_capture_decode_provider-3"
+                        log_dict["pid"] = pid
+                        log_dict["peer_type"] = "PP"
+                        log_dict["msg"] = msg
+                        insert_log_row(conn, queries, log_dict)
+                        conn.commit()
 
-    elif original_peer_type == "BP":
-        peer_queue.put_nowait("promoted from bitswap wake up")
-        logger.debug("put promoted from bitswap wake up")
+                    elif original_peer_type == "BP":
+                        peer_queue.put_nowait(
+                            "put promoted from bitswap wake up from PP peer capture"
+                        )
+                        msg = "put promoted from bitswap wake up from PP peer capture"
+                        # logger.debug(msg)
+                        log_dict = refresh_log_dict()
+                        log_dict["DTS"] = str(datetime.now(timezone.utc))
+                        log_dict["process"] = "peer_capture_decode_provider-4"
+                        log_dict["pid"] = pid
+                        log_dict["peer_type"] = "PP"
+                        log_dict["msg"] = msg
+                        insert_log_row(conn, queries, log_dict)
+                        conn.commit()
 
-    elif original_peer_type == "SP":
-        peer_queue.put_nowait("promoted from swarm wake up")
-        logger.debug("put promoted from swarm wake up")
+                    elif original_peer_type == "SP":
+                        peer_queue.put_nowait(
+                            "put promoted from swarm wake up from PP peer capture"
+                        )
+                        msg = "put promoted from swarm wake up from PP peer capture"
+                        # logger.debug(msg)
+                        log_dict = refresh_log_dict()
+                        log_dict["DTS"] = str(datetime.now(timezone.utc))
+                        log_dict["process"] = "peer_capture_decode_provider-5"
+                        log_dict["pid"] = pid
+                        log_dict["peer_type"] = "PP"
+                        log_dict["msg"] = msg
+                        insert_log_row(conn, queries, log_dict)
+                        conn.commit()
 
     log_string = f"{found} providers found, {added} added and {promoted} promoted."
-    logger.info(log_string)
+    # logger.info(log_string)
+
+    log_dict = refresh_log_dict()
+    log_dict["DTS"] = str(datetime.now(timezone.utc))
+    log_dict["process"] = "peer_capture_decode_provider-6"
+    log_dict["pid"] = pid
+    log_dict["peer_type"] = "PP"
+    log_dict["msg"] = log_string
+    insert_log_row(conn, queries, log_dict)
+    conn.commit()
+
     return found, added, promoted
 
 
 def decode_bitswap_stat_structure(
-    logger,
     conn,
     queries,
     r,
@@ -330,6 +412,9 @@ def decode_bitswap_stat_structure(
     found = 0
     added = 0
     promoted = 0
+    p = psutil.Process()
+    pid = p.pid
+
     json_dict = json.loads(r.text)
     peer_list = json_dict["Peers"]
     for peer in peer_list:
@@ -351,15 +436,34 @@ def decode_bitswap_stat_structure(
             pass
         found += 1
 
-    peer_queue.put_nowait("wake up")
-    logger.debug("put wake up")
+    peer_queue.put_nowait("put wake up from BP peer capture")
+    msg = "put wake up from BP peer capture"
+    # logger.debug(msg)
+    log_dict = refresh_log_dict()
+    log_dict["DTS"] = str(datetime.now(timezone.utc))
+    log_dict["process"] = "peer_capture_decode_bitswap-1"
+    log_dict["pid"] = pid
+    log_dict["peer_type"] = "BP"
+    log_dict["msg"] = msg
+    insert_log_row(conn, queries, log_dict)
+    conn.commit()
+
     log_string = f"{found} bitswap found and {added} added."
-    logger.info(log_string)
+    msg = log_string
+    # logger.info(msg)
+    log_dict = refresh_log_dict()
+    log_dict["DTS"] = str(datetime.now(timezone.utc))
+    log_dict["process"] = "peer_capture_decode_bitswap-2"
+    log_dict["pid"] = pid
+    log_dict["peer_type"] = "BP"
+    log_dict["msg"] = msg
+    insert_log_row(conn, queries, log_dict)
+    conn.commit()
     return found, added, promoted
 
 
 def decode_swarm_structure(
-    logger,
+    # logger,
     conn,
     queries,
     r,
@@ -370,6 +474,8 @@ def decode_swarm_structure(
     found = 0
     added = 0
     promoted = 0
+    p = psutil.Process()
+    pid = p.pid
     for peer_dict in level_one_list:
         peer_table_dict = refresh_peer_table_dict()
         DTS = str(datetime.now(timezone.utc))
@@ -386,10 +492,34 @@ def decode_swarm_structure(
             pass
         found += 1
 
-    peer_queue.put_nowait("wake up")
-    logger.debug("put wake up")
-    log_string = f"{found} swarm found and {added} added."
-    logger.info(log_string)
+    peer_queue.put_nowait("put wake up from SP peer capture")
+
+    msg = "put wake up from SP peer capture"
+    # logger.debug(msg)
+    log_dict = refresh_log_dict()
+    log_dict["DTS"] = str(datetime.now(timezone.utc))
+    log_dict["process"] = "peer_capture_decode_swarm-1"
+    log_dict["pid"] = pid
+    log_dict["peer_type"] = "SP"
+    log_dict["msg"] = msg
+    insert_log_row(conn, queries, log_dict)
+    conn.commit()
+
+    log_string = f"{found} bitswap found and {added} added."
+    msg = log_string
+    # logger.info(msg)
+    log_dict = refresh_log_dict()
+    log_dict["DTS"] = str(datetime.now(timezone.utc))
+    log_dict["process"] = "peer_capture_decode_swarm-2"
+    log_dict["pid"] = pid
+    log_dict["peer_type"] = "SP"
+    log_dict["msg"] = msg
+    insert_log_row(conn, queries, log_dict)
+    conn.commit()
+
+    # logger.debug("put wake up from SP peer capture")
+    # log_string = f"{found} swarm found and {added} added."
+    # logger.info(log_string)
     return found, added, promoted
 
 

@@ -232,5 +232,27 @@ def get_header_table_dict():
     return header_table_dict
 
 
+def insert_log_row(conn, queries, log_dict):
+    queries.insert_log_row(
+        conn,
+        DTS=log_dict["DTS"],
+        process=log_dict["process"],
+        pid=log_dict["pid"],
+        peer_type=log_dict["peer_type"],
+        msg=log_dict["msg"],
+    )
+    return
+
+
+def refresh_log_dict():
+    log_dict = {}
+    log_dict["DTS"] = "null"
+    log_dict["process"] = "null"
+    log_dict["pid"] = "null"
+    log_dict["peer_type"] = "null"
+    log_dict["msg"] = "null"
+    return log_dict
+
+
 if __name__ == "__main__":
     reset_peer_table_status()
